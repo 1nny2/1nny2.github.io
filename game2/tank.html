@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NNY 坦克大战 · 浩源 · 浪尖儿大学生社区</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #1a1a2e;
+    font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+    color: #eee;
+  }
+  #wrap {
+    position: relative; width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #gameContainer {
+    position: relative;
+    box-shadow: 0 0 40px rgba(255,200,0,0.3), inset 0 0 0 2px rgba(255,200,0,0.3);
+    border-radius: 4px;
+  }
+  canvas { display: block; }
+
+  /* ===== HUD ===== */
+  #hud {
+    position: absolute; top: 0; right: -160px; width: 150px;
+    height: 100%; display: flex; flex-direction: column;
+    justify-content: flex-start; padding: 16px 12px; gap: 12px;
+  }
+  #hudLeft {
+    position: absolute; top: 0; left: -160px; width: 150px;
+    height: 100%; display: flex; flex-direction: column;
+    justify-content: flex-start; padding: 16px 12px; gap: 12px;
+  }
+  .hud-box {
+    background: rgba(0,0,0,0.6); border: 1px solid rgba(255,200,0,0.3);
+    border-radius: 6px; padding: 10px; text-align: center;
+  }
+  .hud-box.blue { border-color: rgba(68,136,255,0.5); }
+  .hud-label { font-size: 11px; color: #aaa; letter-spacing: 2px; margin-bottom: 4px; }
+  .hud-val { font-size: 24px; font-weight: bold; color: #ffc800; text-shadow: 0 0 8px #ffc800; }
+  .hud-val.red { color: #ff4466; text-shadow: 0 0 8px #ff4466; }
+  .hud-val.green { color: #44ff66; text-shadow: 0 0 8px #44ff66; }
+  .hud-val.blue { color: #4488ff; text-shadow: 0 0 8px #4488ff; }
+  .hud-sub { font-size: 11px; color: #888; margin-top: 2px; }
+
+  /* ===== 覆盖层 ===== */
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(10,10,30,0.88); backdrop-filter: blur(4px);
+    z-index: 10;
+    padding: 20px;
+  }
+  .overlay.hidden { display: none; }
+  .game-title {
+    font-size: 56px; font-weight: 900; letter-spacing: 6px;
+    background: linear-gradient(90deg, #ffc800, #ff6600, #ff4466);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 30px rgba(255,200,0,0.4);
+    margin-bottom: 6px;
+  }
+  .game-sub { color: #ffc800; letter-spacing: 4px; font-size: 14px; margin-bottom: 6px; opacity: 0.8; }
+  .game-brand { color: #7dd3fc; font-size: 13px; letter-spacing: 3px; margin-bottom: 36px; }
+  .panel-title {
+    font-size: 32px; font-weight: 900; letter-spacing: 4px;
+    color: #ffc800; margin-bottom: 24px;
+    text-shadow: 0 0 15px rgba(255,200,0,0.5);
+  }
+  .btn {
+    padding: 12px 40px; margin: 6px; font-size: 15px; letter-spacing: 3px;
+    background: rgba(255,200,0,0.08); color: #ffc800;
+    border: 1px solid #ffc800; border-radius: 4px; cursor: pointer;
+    transition: all 0.2s; font-weight: bold;
+  }
+  .btn:hover:not(:disabled) {
+    background: rgba(255,200,0,0.25); box-shadow: 0 0 16px rgba(255,200,0,0.5);
+    transform: translateY(-2px);
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.blue {
+    background: rgba(68,136,255,0.08); color: #7bb8ff;
+    border-color: #4488ff;
+  }
+  .btn.blue:hover:not(:disabled) {
+    background: rgba(68,136,255,0.25); box-shadow: 0 0 16px rgba(68,136,255,0.5);
+  }
+  .btn.small { padding: 8px 24px; font-size: 13px; margin: 4px; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .controls-box {
+    margin-top: 30px; padding: 16px 24px;
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,200,0,0.2);
+    border-radius: 6px; font-size: 12px; line-height: 2; color: #999;
+    max-width: 500px;
+  }
+  .controls-box b { color: #ffc800; }
+  .controls-box .p2 b { color: #7bb8ff; }
+  .k {
+    display: inline-block; min-width: 24px; padding: 2px 6px; margin: 0 3px;
+    background: rgba(255,200,0,0.1); border: 1px solid rgba(255,200,0,0.3);
+    border-radius: 3px; color: #ffc800; font-weight: bold; text-align: center;
+  }
+  .k.blue {
+    background: rgba(68,136,255,0.1); border-color: rgba(68,136,255,0.3);
+    color: #7bb8ff;
+  }
+  .result-title { font-size: 48px; font-weight: 900; letter-spacing: 6px; margin-bottom: 20px; }
+  .win .result-title { color: #44ff66; text-shadow: 0 0 25px #44ff66; }
+  .lose .result-title { color: #ff4466; text-shadow: 0 0 25px #ff4466; }
+  .draw .result-title { color: #ffc800; text-shadow: 0 0 25px #ffc800; }
+  .result-stats { font-size: 15px; line-height: 2; color: #ccc; margin-bottom: 24px; }
+  .result-stats .v { color: #ffc800; font-weight: bold; }
+
+  /* ===== 输入框 ===== */
+  .form-row {
+    display: flex; align-items: center; gap: 10px; margin: 10px 0;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .form-label { font-size: 13px; color: #aaa; letter-spacing: 2px; min-width: 80px; }
+  .input {
+    padding: 10px 16px; font-size: 15px; letter-spacing: 2px;
+    background: rgba(0,0,0,0.5); color: #ffc800;
+    border: 1px solid rgba(255,200,0,0.4); border-radius: 4px;
+    width: 180px; text-align: center; font-weight: bold;
+    outline: none;
+  }
+  .input:focus { border-color: #ffc800; box-shadow: 0 0 10px rgba(255,200,0,0.3); }
+  .input.blue { color: #7bb8ff; border-color: rgba(68,136,255,0.4); }
+  .input.blue:focus { border-color: #4488ff; box-shadow: 0 0 10px rgba(68,136,255,0.3); }
+  .input.room { width: 120px; font-size: 22px; letter-spacing: 8px; }
+
+  /* ===== 分隔线 ===== */
+  .divider {
+    width: 100%; max-width: 400px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,200,0,0.3), transparent);
+    margin: 20px 0;
+  }
+
+  /* ===== 房间信息 ===== */
+  .room-info {
+    background: rgba(0,0,0,0.5); border: 1px solid rgba(255,200,0,0.4);
+    border-radius: 8px; padding: 20px 32px; margin: 16px 0;
+    text-align: center; min-width: 360px;
+  }
+  .room-id-display {
+    font-size: 48px; font-weight: 900; letter-spacing: 16px;
+    color: #ffc800; text-shadow: 0 0 20px rgba(255,200,0,0.6);
+    margin: 10px 0;
+  }
+  .room-hint {
+    font-size: 12px; color: #7dd3fc; line-height: 1.8;
+    background: rgba(125,211,252,0.08); border: 1px dashed rgba(125,211,252,0.3);
+    border-radius: 6px; padding: 12px 16px; margin: 12px 0;
+  }
+  .player-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; margin: 6px 0;
+    background: rgba(255,200,0,0.05); border: 1px solid rgba(255,200,0,0.2);
+    border-radius: 6px;
+  }
+  .player-card.p2 {
+    background: rgba(68,136,255,0.05); border-color: rgba(68,136,255,0.2);
+  }
+  .player-card.empty { opacity: 0.5; border-style: dashed; }
+  .player-name { font-size: 16px; font-weight: bold; }
+  .player-name.p1 { color: #ffc800; }
+  .player-name.p2 { color: #7bb8ff; }
+  .player-tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 10px;
+    margin-left: 8px;
+  }
+  .tag-host { background: rgba(255,102,0,0.3); color: #ff8844; border: 1px solid #ff8844; }
+  .tag-guest { background: rgba(68,136,255,0.3); color: #7bb8ff; border: 1px solid #7bb8ff; }
+  .ready-badge {
+    font-size: 12px; padding: 4px 12px; border-radius: 12px;
+    font-weight: bold;
+  }
+  .ready-badge.ready { background: rgba(68,255,102,0.2); color: #44ff66; border: 1px solid #44ff66; }
+  .ready-badge.notready { background: rgba(255,68,102,0.2); color: #ff6688; border: 1px solid #ff6688; }
+
+  .mode-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+  .mode-tab {
+    padding: 10px 24px; font-size: 14px; letter-spacing: 2px;
+    background: rgba(0,0,0,0.4); color: #888;
+    border: 1px solid #444; border-radius: 6px; cursor: pointer;
+    font-weight: bold; transition: all 0.2s;
+  }
+  .mode-tab.active {
+    background: rgba(255,200,0,0.15); color: #ffc800;
+    border-color: #ffc800; box-shadow: 0 0 12px rgba(255,200,0,0.3);
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="gameContainer">
+    <canvas id="game" width="624" height="624"></canvas>
+
+    <!-- 左侧 HUD（P2 信息） -->
+    <div id="hudLeft" class="hidden">
+      <div class="hud-box blue"><div class="hud-label">P2 生命</div><div class="hud-val blue" id="lifeVal2">3</div></div>
+    </div>
+
+    <!-- 右侧 HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-box"><div class="hud-label">关卡</div><div class="hud-val" id="lvVal">1</div></div>
+      <div class="hud-box"><div class="hud-label">得分</div><div class="hud-val" id="scoreVal">0</div></div>
+      <div class="hud-box"><div class="hud-label">P1 生命</div><div class="hud-val red" id="lifeVal">3</div></div>
+      <div class="hud-box" id="enemyBox"><div class="hud-label">剩余敌人</div><div class="hud-val green" id="enemyVal">0</div></div>
+      <div class="hud-box hidden" id="pkBox"><div class="hud-label">模式</div><div class="hud-val" id="modeVal">PK</div><div class="hud-sub" id="pkSub">对战中</div></div>
+    </div>
+
+    <!-- 主菜单 -->
+    <div class="overlay" id="mainMenu">
+      <div class="game-title">NNY 坦克大战</div>
+      <div class="game-sub">浩 源 · 浪 尖 儿 大 学 生 社 区</div>
+      <div class="game-brand">nny · 出品</div>
+      <button class="btn" id="btnStart">开始游戏（单人）</button>
+      <button class="btn blue" id="btnLocal2P">双人对战（同机）</button>
+      <button class="btn" id="btnOnline">局域网联机</button>
+      <div class="controls-box">
+        <div><b>【单人模式】</b></div>
+        <div><span class="k">W</span><span class="k">A</span><span class="k">S</span><span class="k">D</span> / <span class="k">↑↓←→</span> 移动 &nbsp; <span class="k">空格</span> 射击</div>
+        <div class="p2" style="margin-top:8px"><b>【同机双人】</b></div>
+        <div class="p2">P1: <span class="k">W</span><span class="k">A</span><span class="k">S</span><span class="k">D</span> 移动 &nbsp; <span class="k">J</span> 射击</div>
+        <div class="p2">P2: <span class="k blue">↑</span><span class="k blue">↓</span><span class="k blue">←</span><span class="k blue">→</span> 移动 &nbsp; <span class="k blue">/</span> 射击</div>
+        <div style="margin-top:8px"><span class="k">P</span> / <span class="k">Esc</span> 暂停 &nbsp; <span class="k">M</span> 音效开关</div>
+        <div style="margin-top:6px;color:#ffc800">保护基地，消灭所有敌方坦克！</div>
+      </div>
+    </div>
+
+    <!-- 局域网联机菜单 -->
+    <div class="overlay hidden" id="onlineMenu">
+      <div class="panel-title">★ 局域网联机 ★</div>
+
+      <div class="mode-tabs">
+        <div class="mode-tab active" id="tabCreate">创建房间</div>
+        <div class="mode-tab" id="tabJoin">加入房间</div>
+      </div>
+
+      <!-- 创建房间 -->
+      <div id="createPanel">
+        <div class="form-row">
+          <span class="form-label">昵称</span>
+          <input type="text" class="input" id="hostName" maxlength="10" value="主机" placeholder="主机">
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="btnCreateRoom">创建房间</button>
+        </div>
+      </div>
+
+      <!-- 加入房间 -->
+      <div id="joinPanel" style="display:none">
+        <div class="form-row">
+          <span class="form-label">房间号</span>
+          <input type="text" class="input room" id="joinRoomId" maxlength="6" placeholder="0000">
+        </div>
+        <div class="form-row">
+          <span class="form-label">昵称</span>
+          <input type="text" class="input blue" id="guestName" maxlength="10" value="客人" placeholder="客人">
+        </div>
+        <div class="btn-row">
+          <button class="btn blue" id="btnJoinRoom">加入房间</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="room-hint">
+        💡 使用方法：同一 Wi-Fi 下，另一台设备浏览器访问<br>
+        <b style="color:#ffc800" id="localIpHint">http://你的IP:8000/tank.html</b>
+      </div>
+      <div class="btn-row">
+        <button class="btn small" id="btnBackFromOnline">← 返回主菜单</button>
+      </div>
+    </div>
+
+    <!-- 房间大厅 -->
+    <div class="overlay hidden" id="lobbyMenu">
+      <div class="panel-title" id="lobbyTitle">房间大厅</div>
+
+      <div class="room-info">
+        <div style="font-size:12px;color:#aaa;letter-spacing:3px">房 间 号</div>
+        <div class="room-id-display" id="lobbyRoomId">----</div>
+
+        <div class="player-card" id="cardP1">
+          <div>
+            <span class="player-name p1" id="p1Name">主机</span>
+            <span class="player-tag tag-host" id="p1Tag">主机</span>
+          </div>
+          <div class="ready-badge notready" id="p1Ready">未准备</div>
+        </div>
+
+        <div class="player-card p2 empty" id="cardP2">
+          <div>
+            <span class="player-name p2" id="p2Name">等待客人...</span>
+            <span class="player-tag tag-guest" id="p2Tag" style="display:none">客人</span>
+          </div>
+          <div class="ready-badge notready" id="p2Ready">未加入</div>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn" id="btnReady">准备</button>
+        <button class="btn blue" id="btnStartOnline" disabled>开始游戏</button>
+      </div>
+
+      <div class="room-hint" id="lobbyHint" style="margin-top:16px;max-width:420px">
+        双方都准备后，由主机点击「开始游戏」<br>
+        联机模式：<b style="color:#ff4466">双人 PK 对战</b>（无敌人，每人 5 条命，击败对手获胜！）
+      </div>
+
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn small" id="btnLeaveLobby">← 离开房间</button>
+      </div>
+    </div>
+
+    <!-- 暂停 -->
+    <div class="overlay hidden" id="pauseMenu">
+      <div class="result-title" style="color:#ffc800;text-shadow:0 0 20px #ffc800">PAUSED</div>
+      <button class="btn" id="btnResume">继续</button>
+      <button class="btn" id="btnQuit">返回主菜单</button>
+    </div>
+
+    <!-- 结算 -->
+    <div class="overlay hidden" id="gameOverScreen">
+      <div class="result-title" id="resultTitle">GAME OVER</div>
+      <div class="result-stats" id="resultStats">
+        <div>最终得分 <span class="v" id="finalScore">0</span></div>
+        <div>到达关卡 <span class="v" id="finalLevel">1</span></div>
+        <div>击毁坦克 <span class="v" id="finalKills">0</span></div>
+      </div>
+      <button class="btn" id="btnRetry">再次出击</button>
+      <button class="btn" id="btnMenu">返回主菜单</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+ *  NNY 坦克大战 · 浩源 · 浪尖儿大学生社区
+ *  Canvas 2D 单文件实现 · 支持 单人 / 同机双人 / 联机PK
+ * ============================================================ */
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+// ============ 配置 ============
+const TS = 48;
+const COLS = 13;
+const ROWS = 13;
+const W = COLS * TS;
+const H = ROWS * TS;
+
+const T = { EMPTY:0, BRICK:1, STEEL:2, GRASS:3, WATER:4, BASE:5 };
+
+const C = {
+  bg: '#1a1a2e',
+  brick: '#cc6633',
+  brickDark: '#883311',
+  steel: '#aaaaaa',
+  steelDark: '#666666',
+  grass: '#226622',
+  water: '#2244aa',
+  player: '#ffc800',
+  playerDark: '#cc8800',
+  player2: '#4488ff',
+  player2Dark: '#2244aa',
+  enemy: '#ff4466',
+  enemyDark: '#aa2244',
+  enemyFast: '#44ddff',
+  enemyFastDark: '#2288aa',
+  enemyPower: '#dd44ff',
+  enemyPowerDark: '#8822aa',
+  bullet: '#ffffff',
+  base: '#ffcc00',
+  baseDead: '#666666',
+};
+
+// ============ 地图 ============
+function buildMap() {
+  const m = [];
+  for (let r = 0; r < ROWS; r++) m.push(new Array(COLS).fill(T.EMPTY));
+
+  const N_PATTERN = [
+    [1,0,0,1],[1,1,0,1],[1,0,1,1],[1,0,0,1],[1,0,0,1],
+  ];
+  const Y_PATTERN = [
+    [1,0,1],[1,0,1],[0,1,0],[0,1,0],[0,1,0],
+  ];
+
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 4; c++) {
+      if (N_PATTERN[r][c]) m[3 + r][1 + c] = T.BRICK;
+      if (N_PATTERN[r][c]) m[3 + r][6 + c] = T.BRICK;
+    }
+  }
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 3; c++) {
+      if (Y_PATTERN[r][c]) m[3 + r][10 + c] = T.BRICK;
+    }
+  }
+
+  m[0][0] = T.STEEL; m[0][COLS-1] = T.STEEL;
+  m[ROWS-1][0] = T.STEEL; m[ROWS-1][COLS-1] = T.STEEL;
+
+  const baseCol = Math.floor(COLS / 2);
+  const baseRow = ROWS - 2;
+  m[baseRow][baseCol] = T.BASE;
+  if (baseCol - 1 >= 0) m[baseRow][baseCol - 1] = T.BRICK;
+  if (baseCol + 1 < COLS) m[baseRow][baseCol + 1] = T.BRICK;
+  if (baseRow - 1 >= 0) {
+    m[baseRow - 1][baseCol - 1] = T.BRICK;
+    m[baseRow - 1][baseCol] = T.BRICK;
+    m[baseRow - 1][baseCol + 1] = T.BRICK;
+  }
+
+  m[ROWS-3][1] = T.WATER; m[ROWS-3][2] = T.WATER;
+  m[ROWS-4][1] = T.WATER; m[ROWS-4][2] = T.WATER;
+  m[ROWS-3][COLS-3] = T.GRASS; m[ROWS-3][COLS-4] = T.GRASS;
+  m[ROWS-4][COLS-3] = T.GRASS; m[ROWS-4][COLS-4] = T.GRASS;
+
+  m[2][5] = T.STEEL;
+  m[8][0] = T.STEEL;
+  m[8][COLS-1] = T.STEEL;
+
+  return m;
+}
+
+let mapData = buildMap();
+let baseAlive = true;
+
+// ============ 输入 ============
+const Input = {
+  keys: new Set(),
+  pressed: new Set(),
+  init() {
+    addEventListener('keydown', e => {
+      if (!this.keys.has(e.code)) this.pressed.add(e.code);
+      this.keys.add(e.code);
+      if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Slash','Enter'].includes(e.code)) e.preventDefault();
+      if (e.code === 'KeyM') {
+        Audio.muted = !Audio.muted;
+        showToast(Audio.muted ? '🔇 音效已关闭' : '🔊 音效已开启');
+      }
+    });
+    addEventListener('keyup', e => this.keys.delete(e.code));
+  },
+  down(...codes) { return codes.some(c => this.keys.has(c)); },
+  justPressed(code) { return this.pressed.has(code); },
+  justPressedAny(...codes) { return codes.some(c => this.pressed.has(c)); },
+  clearPressed() { this.pressed.clear(); },
+};
+
+// ============ 音频 ============
+const Audio = {
+  ctx: null, muted: false,
+  init() {
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  },
+  resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+  beep(freq, dur, type='square', vol=0.15, slide=0) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+    if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq+slide), t+dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+    osc.connect(g); g.connect(this.ctx.destination);
+    osc.start(t); osc.stop(t+dur);
+  },
+  shoot() { this.beep(800, 0.06, 'square', 0.08, -300); },
+  explosion() { this.beep(60, 0.3, 'sawtooth', 0.2, 20); this.beep(120, 0.15, 'square', 0.1, -40); },
+  hit() { this.beep(200, 0.08, 'square', 0.1, -50); },
+  steel() { this.beep(400, 0.04, 'triangle', 0.06); },
+  upgrade() { [523,659,784].forEach((f,i)=>setTimeout(()=>this.beep(f,0.1,'triangle',0.12),i*60)); },
+};
+
+// ============ 工具 ============
+const TAU = Math.PI * 2;
+const rand = (a, b) => a + Math.random() * (b - a);
+const randi = (a, b) => Math.floor(rand(a, b + 1));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+const DIRS = [
+  { x: 0, y: -1 },
+  { x: 1, y: 0 },
+  { x: 0, y: 1 },
+  { x: -1, y: 0 },
+];
+
+// ============ 坦克 ============
+class Tank {
+  constructor(x, y, dir, type) {
+    this.x = x; this.y = y;
+    this.dir = dir;
+    this.type = type; // 'player' | 'player2' | 'enemy' | 'fast' | 'power' | 'online_other'
+    this.size = TS * 0.8;
+    this.speed = type === 'player' || type === 'player2' ? 2 : type === 'fast' ? 2.5 : 1.5;
+    this.fireRate = type === 'player' || type === 'player2' ? 0.35 : type === 'power' ? 0.8 : 1.0;
+    this.fireCD = 0;
+    this.hp = type === 'power' ? 3 : 1;
+    this.maxHp = this.hp;
+    this.alive = true;
+    this.color = this.getColor();
+    this.darkColor = this.getDarkColor();
+    this.bulletSpeed = type === 'fast' ? 6 : 5;
+    this.bulletPower = type === 'power' ? 2 : 1;
+    this.aiTimer = 0;
+    this.aiDir = dir;
+    this.spawnAnim = 0.5;
+    this.playerIndex = -1;
+  }
+
+  getColor() {
+    switch(this.type) {
+      case 'player': return C.player;
+      case 'player2': return C.player2;
+      case 'online_other': return C.player2;
+      case 'fast': return C.enemyFast;
+      case 'power': return C.enemyPower;
+      default: return C.enemy;
+    }
+  }
+  getDarkColor() {
+    switch(this.type) {
+      case 'player': return C.playerDark;
+      case 'player2': return C.player2Dark;
+      case 'online_other': return C.player2Dark;
+      case 'fast': return C.enemyFastDark;
+      case 'power': return C.enemyPowerDark;
+      default: return C.enemyDark;
+    }
+  }
+
+  get col() { return Math.floor(this.x / TS); }
+  get row() { return Math.floor(this.y / TS); }
+
+  canMove(nx, ny, ignoreTanks = []) {
+    const half = this.size / 2;
+    const corners = [
+      { x: nx - half, y: ny - half },
+      { x: nx + half - 1, y: ny - half },
+      { x: nx - half, y: ny + half - 1 },
+      { x: nx + half - 1, y: ny + half - 1 },
+    ];
+    for (const c of corners) {
+      if (c.x < 0 || c.x >= W || c.y < 0 || c.y >= H) return false;
+      const col = Math.floor(c.x / TS);
+      const row = Math.floor(c.y / TS);
+      const tile = mapData[row] ? mapData[row][col] : T.EMPTY;
+      if (tile === T.BRICK || tile === T.STEEL || tile === T.WATER || tile === T.BASE) return false;
+    }
+    // 坦克间碰撞
+    const allTanks = [
+      ...(Game.mode === 'online' ? [] : players),
+      ...enemies,
+    ].filter(t => t && t.alive && t !== this && !ignoreTanks.includes(t));
+    for (const t of allTanks) {
+      const dx = nx - t.x, dy = ny - t.y;
+      const minD = (this.size + t.size) * 0.48;
+      if (dx*dx + dy*dy < minD * minD) return false;
+    }
+    return true;
+  }
+
+  move(dir) {
+    this.dir = dir;
+    const d = DIRS[dir];
+    const nx = this.x + d.x * this.speed;
+    const ny = this.y + d.y * this.speed;
+    if (this.canMove(nx, ny)) {
+      if (d.x !== 0) {
+        this.y = Math.round(this.y / (TS/2)) * (TS/2);
+      } else {
+        this.x = Math.round(this.x / (TS/2)) * (TS/2);
+      }
+      this.x = nx; this.y = ny;
+      return true;
+    }
+    return false;
+  }
+
+  fire() {
+    if (this.fireCD > 0) return false;
+    this.fireCD = this.fireRate;
+    const d = DIRS[this.dir];
+    const bx = this.x + d.x * (this.size/2 + 4);
+    const by = this.y + d.y * (this.size/2 + 4);
+    bullets.push(new Bullet(bx, by, this.dir, this));
+    Audio.shoot();
+    return true;
+  }
+
+  update(dt) {
+    if (this.fireCD > 0) this.fireCD -= dt;
+    if (this.spawnAnim > 0) this.spawnAnim -= dt;
+  }
+
+  draw() {
+    if (!this.alive) return;
+    const s = this.size;
+    const half = s / 2;
+
+    if (this.spawnAnim > 0 && Math.floor(this.spawnAnim * 10) % 2 === 0) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.fillRect(this.x - half - 2, this.y - half - 2, s + 4, s + 4);
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    ctx.fillStyle = this.darkColor;
+    const trackOffset = (performance.now() / 50) % 8;
+    if (this.dir === 0 || this.dir === 2) {
+      ctx.fillRect(-half, -half, 6, s);
+      ctx.fillRect(half - 6, -half, 6, s);
+      ctx.fillStyle = this.color;
+      for (let i = 0; i < s; i += 8) {
+        const off = (this.dir === 0 ? -trackOffset : trackOffset);
+        ctx.fillRect(-half, -half + i + off, 6, 4);
+        ctx.fillRect(half - 6, -half + i + off, 6, 4);
+      }
+    } else {
+      ctx.fillRect(-half, -half, s, 6);
+      ctx.fillRect(-half, half - 6, s, 6);
+      ctx.fillStyle = this.color;
+      for (let i = 0; i < s; i += 8) {
+        const off = (this.dir === 3 ? -trackOffset : trackOffset);
+        ctx.fillRect(-half + i + off, -half, 4, 6);
+        ctx.fillRect(-half + i + off, half - 6, 4, 6);
+      }
+    }
+
+    ctx.fillStyle = this.color;
+    ctx.fillRect(-half + 6, -half + 6, s - 12, s - 12);
+
+    ctx.fillStyle = this.darkColor;
+    ctx.beginPath();
+    ctx.arc(0, 0, half * 0.5, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(0, 0, half * 0.35, 0, TAU);
+    ctx.fill();
+
+    ctx.fillStyle = this.darkColor;
+    ctx.save();
+    ctx.rotate(this.dir * Math.PI / 2);
+    ctx.fillRect(-3, -half - 4, 6, half * 0.7);
+    ctx.restore();
+
+    if (this.type === 'power') {
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('★', 0, 1);
+    }
+
+    ctx.restore();
+  }
+}
+
+// ============ 子弹 ============
+class Bullet {
+  constructor(x, y, dir, owner) {
+    this.x = x; this.y = y;
+    this.dir = dir;
+    this.owner = owner;
+    this.speed = owner.bulletSpeed || 5;
+    this.power = owner.bulletPower || 1;
+    this.radius = 5;
+    this.alive = true;
+    this.isPlayerOwned = (owner.type === 'player' || owner.type === 'player2' || owner.type === 'online_other');
+    this.isEnemyOwned = !this.isPlayerOwned;
+    this.ownerPIndex = owner.playerIndex; // 0 or 1 for PvP, -1 for enemy
+    this.color = this.isPlayerOwned ?
+      (owner.type === 'player2' || owner.type === 'online_other' ? '#88bbff' : '#ffff88') :
+      '#ff6688';
+  }
+
+  update(dt) {
+    const d = DIRS[this.dir];
+    this.x += d.x * this.speed;
+    this.y += d.y * this.speed;
+
+    if (this.x < 0 || this.x >= W || this.y < 0 || this.y >= H) {
+      this.alive = false;
+      return;
+    }
+
+    const col = Math.floor(this.x / TS);
+    const row = Math.floor(this.y / TS);
+    if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
+      const tile = mapData[row][col];
+      if (tile === T.BRICK) {
+        mapData[row][col] = T.EMPTY;
+        this.alive = false;
+        spawnExplosion(this.x, this.y, '#cc6633', 8);
+        Audio.hit();
+      } else if (tile === T.STEEL) {
+        if (this.power >= 2) {
+          mapData[row][col] = T.EMPTY;
+          spawnExplosion(this.x, this.y, '#aaaaaa', 8);
+        } else {
+          spawnExplosion(this.x, this.y, '#ffffff', 4);
+        }
+        this.alive = false;
+        Audio.steel();
+      } else if (tile === T.BASE && Game.mode !== 'online') {
+        mapData[row][col] = T.EMPTY;
+        baseAlive = false;
+        this.alive = false;
+        spawnExplosion(col * TS + TS/2, row * TS + TS/2, '#ff4400', 30);
+        Audio.explosion();
+        Game.shake = 20;
+      }
+    }
+  }
+
+  draw() {
+    if (!this.alive) return;
+    ctx.save();
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = this.color;
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius * 0.5, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// ============ 粒子 ============
+const particles = [];
+function spawnParticle(x, y, vx, vy, life, size, color) {
+  if (particles.length > 300) particles.shift();
+  particles.push({ x, y, vx, vy, life, maxLife: life, size, color });
+}
+function spawnExplosion(x, y, color, count = 15) {
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * TAU;
+    const s = rand(30, 150);
+    spawnParticle(x, y, Math.cos(a) * s, Math.sin(a) * s, rand(0.3, 0.7), rand(2, 5), color);
+  }
+  spawnParticle(x, y, 0, 0, 0.15, 30, '#ffffff');
+}
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    p.vx *= 0.94; p.vy *= 0.94;
+    p.life -= dt;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+function renderParticles() {
+  for (const p of particles) {
+    const a = p.life / p.maxLife;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = p.color;
+    ctx.shadowBlur = 6; ctx.shadowColor = p.color;
+    ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+}
+
+// ============ 玩家数组（替代单 player） ============
+let players = [];
+// 联机模式：对手坦克（插值显示用）
+let onlineOpponent = null;
+let onlineOppTarget = null; // {x,y,dir,alive} 目标状态
+
+let enemies = [];
+let bullets = [];
+let enemySpawnQueue = 0;
+let enemySpawnTimer = 0;
+const enemySpawnPoints = [
+  { x: TS/2, y: TS/2 },
+  { x: TS * (COLS-1) - TS/2 + TS, y: TS/2 },
+  { x: TS * Math.floor(COLS/2) + TS/2, y: TS/2 },
+];
+
+// ============ 游戏状态 ============
+const Game = {
+  state: 'menu', // menu | playing | paused | gameover
+  mode: 'single', // 'single' | 'local2p' | 'online'
+  onlineRole: null, // 'host' | 'guest' | null
+  roomId: null,
+  playerNum: 1, // 1 or 2 in online mode
+  score: 0,
+  lives: 3,
+  lives2: 3,
+  pkHp: [5, 5], // 联机PK 双方血量
+  level: 1,
+  kills: 0,
+  shake: 0,
+  flash: 0,
+  totalEnemies: 0,
+  _lastEventIdx: 0,
+  _syncTimer: 0,
+  _pollTimer: 0,
+  _lobbyPollTimer: 0,
+
+  start(mode = 'single') {
+    this.mode = mode;
+    mapData = buildMap();
+    baseAlive = true;
+    enemies = []; bullets = []; particles.length = 0;
+    this.score = 0; this.level = 1; this.kills = 0;
+    this.shake = 0; this.flash = 0;
+    this._lastEventIdx = 0;
+    this._syncTimer = 0;
+
+    players = [];
+    onlineOpponent = null;
+    onlineOppTarget = null;
+
+    if (mode === 'single') {
+      this.lives = 3;
+      const p = new Tank(TS * 6 + TS/2, TS * (ROWS-1) + TS/2, 0, 'player');
+      p.playerIndex = 0;
+      players.push(p);
+      this.spawnEnemies(8);
+    } else if (mode === 'local2p') {
+      this.lives = 3;
+      this.lives2 = 3;
+      const p1 = new Tank(TS * 3 + TS/2, TS * (ROWS-1) + TS/2, 0, 'player');
+      p1.playerIndex = 0;
+      players.push(p1);
+      const p2 = new Tank(TS * 9 + TS/2, TS * (ROWS-1) + TS/2, 0, 'player2');
+      p2.playerIndex = 1;
+      players.push(p2);
+      this.spawnEnemies(10);
+    } else if (mode === 'online') {
+      // PK 模式：每人5条命，无敌人
+      this.pkHp = [5, 5];
+      // 自己的位置
+      if (this.onlineRole === 'host') {
+        const p = new Tank(TS * 1 + TS/2, TS * (ROWS-2) + TS/2, 0, 'player');
+        p.playerIndex = 0;
+        players.push(p);
+        // 对手初始占位
+        onlineOppTarget = { x: TS * (COLS-2) + TS/2, y: TS * 1 + TS/2, dir: 2, alive: true };
+      } else {
+        const p = new Tank(TS * (COLS-2) + TS/2, TS * 1 + TS/2, 2, 'player2');
+        p.playerIndex = 1;
+        players.push(p);
+        onlineOppTarget = { x: TS * 1 + TS/2, y: TS * (ROWS-2) + TS/2, dir: 0, alive: true };
+      }
+      // 创建对手显示坦克
+      const opp = new Tank(onlineOppTarget.x, onlineOppTarget.y, onlineOppTarget.dir,
+        this.onlineRole === 'host' ? 'online_other' : 'online_other');
+      opp.playerIndex = this.onlineRole === 'host' ? 1 : 0;
+      opp.spawnAnim = 0;
+      onlineOpponent = opp;
+    }
+
+    this.state = 'playing';
+    hideAllOverlays();
+    document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('hudLeft').classList.toggle('hidden', mode === 'single');
+    document.getElementById('enemyBox').classList.toggle('hidden', mode === 'online');
+    document.getElementById('pkBox').classList.toggle('hidden', mode !== 'online');
+    if (mode === 'online') {
+      document.getElementById('modeVal').textContent = 'PK';
+      document.getElementById('pkSub').textContent = `HP ${this.pkHp[this.playerNum-1]}`;
+    }
+    Audio.resume();
+    this._lobbyPollTimer = 0;
+  },
+
+  spawnEnemies(count) {
+    enemySpawnQueue = count;
+    this.totalEnemies = count;
+    enemySpawnTimer = 0;
+  },
+
+  nextLevel() {
+    this.level++;
+    mapData = buildMap();
+    baseAlive = true;
+    if (this.mode === 'single') {
+      players[0].x = TS * 6 + TS/2; players[0].y = TS * (ROWS-1) + TS/2;
+      players[0].dir = 0; players[0].spawnAnim = 1; players[0].fireCD = 0;
+      players[0].alive = true;
+    } else if (this.mode === 'local2p') {
+      players[0].x = TS * 3 + TS/2; players[0].y = TS * (ROWS-1) + TS/2;
+      players[0].dir = 0; players[0].spawnAnim = 1; players[0].alive = true;
+      players[1].x = TS * 9 + TS/2; players[1].y = TS * (ROWS-1) + TS/2;
+      players[1].dir = 0; players[1].spawnAnim = 1; players[1].alive = true;
+    }
+    enemies = []; bullets = [];
+    const count = (this.mode === 'local2p' ? 10 : 8) + this.level * 2;
+    this.spawnEnemies(count);
+    showToast('第 ' + this.level + ' 关');
+  },
+
+  gameOver(winOrResult, extra) {
+    this.state = 'gameover';
+    const screen = document.getElementById('gameOverScreen');
+    screen.classList.remove('hidden', 'win', 'lose', 'draw');
+
+    const statsEl = document.getElementById('resultStats');
+    if (this.mode === 'online') {
+      // PK 结果
+      let result;
+      if (winOrResult === 'win') { result = 'win'; screen.classList.add('win'); document.getElementById('resultTitle').textContent = '🏆 胜利!'; }
+      else if (winOrResult === 'lose') { result = 'lose'; screen.classList.add('lose'); document.getElementById('resultTitle').textContent = '💀 失败'; }
+      else { result = 'draw'; screen.classList.add('draw'); document.getElementById('resultTitle').textContent = '⚔ 平局'; }
+      statsEl.innerHTML = `<div>你的剩余 HP: <span class="v">${Math.max(0, this.pkHp[this.playerNum-1])}</span></div>
+                           <div>对手剩余 HP: <span class="v">${Math.max(0, this.pkHp[2-this.playerNum])}</span></div>
+                           <div style="margin-top:8px;color:#888">房间号: ${this.roomId}</div>`;
+    } else {
+      const win = !!winOrResult;
+      screen.classList.add(win ? 'win' : 'lose');
+      document.getElementById('resultTitle').textContent = win ? 'VICTORY' : 'GAME OVER';
+      statsEl.innerHTML = `<div>最终得分 <span class="v" id="finalScore">${this.score}</span></div>
+                           <div>到达关卡 <span class="v" id="finalLevel">${this.level}</span></div>
+                           <div>击毁坦克 <span class="v" id="finalKills">${this.kills}</span></div>`;
+    }
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('hudLeft').classList.add('hidden');
+  },
+
+  respawnPlayer(idx) {
+    const p = players[idx];
+    if (!p) return;
+    if (this.mode === 'single') {
+      if (this.lives > 0) {
+        setTimeout(() => {
+          if (this.state === 'playing') {
+            p.x = TS * 6 + TS/2; p.y = TS * (ROWS-1) + TS/2;
+            p.alive = true; p.spawnAnim = 1.5; p.fireCD = 0; p.dir = 0;
+          }
+        }, 1500);
+      }
+    } else if (this.mode === 'local2p') {
+      const lives = idx === 0 ? this.lives : this.lives2;
+      if (lives > 0) {
+        setTimeout(() => {
+          if (this.state === 'playing') {
+            if (idx === 0) { p.x = TS * 3 + TS/2; p.y = TS * (ROWS-1) + TS/2; }
+            else { p.x = TS * 9 + TS/2; p.y = TS * (ROWS-1) + TS/2; }
+            p.alive = true; p.spawnAnim = 1.5; p.fireCD = 0; p.dir = 0;
+          }
+        }, 1500);
+      }
+    }
+  },
+
+  update(dt) {
+    if (this.state !== 'playing') return;
+
+    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt * 40);
+    if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 3);
+
+    // ===== 玩家输入 =====
+    if (this.mode === 'single') {
+      const p = players[0];
+      if (p && p.alive) {
+        if (Input.down('KeyW','ArrowUp')) p.move(0);
+        else if (Input.down('KeyD','ArrowRight')) p.move(1);
+        else if (Input.down('KeyS','ArrowDown')) p.move(2);
+        else if (Input.down('KeyA','ArrowLeft')) p.move(3);
+        if (Input.down('Space')) p.fire();
+        p.update(dt);
+      }
+    } else if (this.mode === 'local2p') {
+      // P1: WASD + J
+      const p1 = players[0];
+      if (p1 && p1.alive) {
+        if (Input.down('KeyW')) p1.move(0);
+        else if (Input.down('KeyD')) p1.move(1);
+        else if (Input.down('KeyS')) p1.move(2);
+        else if (Input.down('KeyA')) p1.move(3);
+        if (Input.down('KeyJ')) p1.fire();
+        p1.update(dt);
+      }
+      // P2: 方向键 + / (Slash) 或 Enter
+      const p2 = players[1];
+      if (p2 && p2.alive) {
+        if (Input.down('ArrowUp')) p2.move(0);
+        else if (Input.down('ArrowRight')) p2.move(1);
+        else if (Input.down('ArrowDown')) p2.move(2);
+        else if (Input.down('ArrowLeft')) p2.move(3);
+        if (Input.down('Slash') || Input.down('Numpad0') || Input.down('Enter')) p2.fire();
+        p2.update(dt);
+      }
+    } else if (this.mode === 'online') {
+      // 自己控制
+      const me = players[0];
+      let fired = false;
+      if (me && me.alive) {
+        if (Input.down('KeyW','ArrowUp')) me.move(0);
+        else if (Input.down('KeyD','ArrowRight')) me.move(1);
+        else if (Input.down('KeyS','ArrowDown')) me.move(2);
+        else if (Input.down('KeyA','ArrowLeft')) me.move(3);
+        if (Input.down('Space','KeyJ','Slash','Enter')) {
+          fired = me.fire();
+        }
+        me.update(dt);
+      }
+      // 对手插值
+      if (onlineOpponent && onlineOppTarget) {
+        const t = clamp(dt * 10, 0, 1);
+        onlineOpponent.x += (onlineOppTarget.x - onlineOpponent.x) * t;
+        onlineOpponent.y += (onlineOppTarget.y - onlineOpponent.y) * t;
+        onlineOpponent.dir = onlineOppTarget.dir;
+        onlineOpponent.alive = onlineOppTarget.alive;
+        onlineOpponent.update(dt);
+      }
+
+      // 同步
+      this._syncTimer -= dt;
+      if (this._syncTimer <= 0) {
+        this._syncTimer = 0.02; // ~20ms
+        const events = [];
+        if (fired) events.push({ type: 'fire', dir: me.dir, x: me.x, y: me.y, p: this.playerNum });
+        Net.pushState(me.x, me.y, me.dir, me.alive, events);
+      }
+    }
+
+    // ===== 敌方AI（非联机模式） =====
+    if (this.mode !== 'online') {
+      for (const e of enemies) {
+        if (!e.alive) continue;
+        e.aiTimer -= dt;
+        if (e.aiTimer <= 0) {
+          const r = Math.random();
+          const anyPlayer = players.find(p => p && p.alive);
+          if (r < 0.3 && anyPlayer) {
+            const dx = anyPlayer.x - e.x;
+            const dy = anyPlayer.y - e.y;
+            if (Math.abs(dx) > Math.abs(dy)) e.aiDir = dx > 0 ? 1 : 3;
+            else e.aiDir = dy > 0 ? 2 : 0;
+          } else if (r < 0.5) {
+            const baseX = TS * Math.floor(COLS/2) + TS/2;
+            const baseY = TS * (ROWS - 2) + TS/2;
+            const dx = baseX - e.x;
+            const dy = baseY - e.y;
+            if (Math.abs(dx) > Math.abs(dy)) e.aiDir = dx > 0 ? 1 : 3;
+            else e.aiDir = dy > 0 ? 2 : 0;
+          } else {
+            e.aiDir = randi(0, 3);
+          }
+          e.aiTimer = rand(1, 3);
+        }
+        const oldX = e.x, oldY = e.y;
+        e.dir = e.aiDir;
+        e.move(e.aiDir);
+        if (Math.abs(e.x - oldX) < 0.1 && Math.abs(e.y - oldY) < 0.1) e.aiTimer = 0;
+        if (Math.random() < 0.02) e.fire();
+        e.update(dt);
+      }
+
+      // 敌方出生
+      if (enemySpawnQueue > 0) {
+        enemySpawnTimer -= dt;
+        if (enemySpawnTimer <= 0) {
+          const aliveEnemies = enemies.filter(e => e.alive).length;
+          if (aliveEnemies < 4) {
+            const sp = enemySpawnPoints[randi(0, enemySpawnPoints.length - 1)];
+            let blocked = false;
+            for (const e of enemies) {
+              if (e.alive && Math.abs(e.x - sp.x) < TS && Math.abs(e.y - sp.y) < TS) { blocked = true; break; }
+            }
+            if (!blocked) {
+              for (const p of players) {
+                if (p && p.alive && Math.abs(p.x - sp.x) < TS && Math.abs(p.y - sp.y) < TS) { blocked = true; break; }
+              }
+            }
+            if (!blocked) {
+              const r = Math.random();
+              let type = 'enemy';
+              if (this.level >= 2 && r < 0.25) type = 'fast';
+              if (this.level >= 3 && r < 0.15) type = 'power';
+              const e = new Tank(sp.x, sp.y, 2, type);
+              enemies.push(e);
+              enemySpawnQueue--;
+              enemySpawnTimer = rand(2, 4);
+              spawnExplosion(sp.x, sp.y, '#ffffff', 10);
+            }
+          }
+        }
+      }
+    }
+
+    // ===== 子弹更新 & 碰撞 =====
+    for (const b of bullets) {
+      if (!b.alive) continue;
+      b.update(dt);
+      if (!b.alive) continue;
+
+      // 玩家子弹 vs 敌人
+      if (b.alive && b.isPlayerOwned && this.mode !== 'online') {
+        for (const e of enemies) {
+          if (!e.alive || e.spawnAnim > 0) continue;
+          const dx = b.x - e.x, dy = b.y - e.y;
+          if (dx*dx + dy*dy < (e.size/2 + b.radius)**2) {
+            e.hp--;
+            b.alive = false;
+            if (e.hp <= 0) {
+              e.alive = false;
+              spawnExplosion(e.x, e.y, e.color, 20);
+              Audio.explosion();
+              this.kills++;
+              this.score += e.type === 'power' ? 300 : e.type === 'fast' ? 200 : 100;
+              this.shake = Math.max(this.shake, 5);
+            } else {
+              spawnExplosion(b.x, b.y, '#ffffff', 6);
+              Audio.hit();
+            }
+            break;
+          }
+        }
+      }
+
+      // 子弹 vs 玩家（被击中）
+      if (b.alive) {
+        const hitTargets = [];
+        if (this.mode === 'online') {
+          // 联机PK: 检查是否被对手子弹打中自己（本地自己的子弹ownerPIndex是自己；对手发来的fire事件，我们设置ownerPIndex为对手）
+          const me = players[0];
+          if (me && me.alive && me.spawnAnim <= 0 && b.ownerPIndex !== me.playerIndex && b.ownerPIndex >= 0) {
+            hitTargets.push({ tank: me, isPlayer: true, idx: me.playerIndex });
+          }
+        } else {
+          // 本地模式：敌人子弹打任何玩家，玩家子弹不打玩家
+          if (b.isEnemyOwned) {
+            for (let i = 0; i < players.length; i++) {
+              const p = players[i];
+              if (p && p.alive && p.spawnAnim <= 0) hitTargets.push({ tank: p, isPlayer: true, idx: i });
+            }
+          }
+        }
+
+        for (const tgt of hitTargets) {
+          const t = tgt.tank;
+          const dx = b.x - t.x, dy = b.y - t.y;
+          if (dx*dx + dy*dy < (t.size/2 + b.radius)**2) {
+            b.alive = false;
+
+            if (this.mode === 'online') {
+              // PK 扣血
+              this.pkHp[tgt.idx]--;
+              spawnExplosion(t.x, t.y, t.color, 15);
+              Audio.hit();
+              document.getElementById('pkSub').textContent = `HP ${this.pkHp[this.playerNum-1]}`;
+              if (this.pkHp[tgt.idx] <= 0) {
+                t.alive = false;
+                Audio.explosion();
+                this.shake = 15;
+                // 判定胜负
+                setTimeout(() => {
+                  if (this.state !== 'playing') return;
+                  const myHp = this.pkHp[this.playerNum-1];
+                  const oppHp = this.pkHp[2-this.playerNum];
+                  if (myHp <= 0 && oppHp <= 0) this.gameOver('draw');
+                  else if (myHp <= 0) this.gameOver('lose');
+                  else if (oppHp <= 0) this.gameOver('win');
+                }, 300);
+              } else {
+                // 小无敌 + 复位？不复位，继续战斗，仅闪烁
+                t.spawnAnim = 0.6;
+              }
+            } else {
+              // 本地模式：死亡 -> 扣命 -> 重生/失败
+              t.alive = false;
+              spawnExplosion(t.x, t.y, t.color, 25);
+              Audio.explosion();
+              this.shake = 15; this.flash = 0.5;
+              if (tgt.idx === 0) this.lives--;
+              else this.lives2--;
+              this.respawnPlayer(tgt.idx);
+            }
+            break;
+          }
+        }
+      }
+
+      // 子弹 vs 子弹
+      if (b.alive) {
+        for (const b2 of bullets) {
+          if (b === b2 || !b2.alive) continue;
+          if ((b.isPlayerOwned === b2.isPlayerOwned) && !(this.mode === 'online' && b.ownerPIndex !== b2.ownerPIndex)) continue;
+          const dx = b.x - b2.x, dy = b.y - b2.y;
+          if (dx*dx + dy*dy < (b.radius + b2.radius)**2) {
+            b.alive = false; b2.alive = false;
+            spawnExplosion(b.x, b.y, '#ffffff', 5);
+            break;
+          }
+        }
+      }
+    }
+    bullets = bullets.filter(b => b.alive);
+
+    // 敌人/玩家坦克间碰撞避免重叠（仅本地非联机）
+    if (this.mode !== 'online') {
+      const allTanks = [...players.filter(p=>p), ...enemies];
+      for (let i = 0; i < allTanks.length; i++) {
+        for (let j = i+1; j < allTanks.length; j++) {
+          const a = allTanks[i], b = allTanks[j];
+          if (!a.alive || !b.alive) continue;
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const d2 = dx*dx + dy*dy;
+          const minD = a.size * 0.9;
+          if (d2 < minD * minD && d2 > 0) {
+            const d = Math.sqrt(d2);
+            const push = (minD - d) / 2;
+            const nx = dx / d, ny = dy / d;
+            a.x -= nx * push; a.y -= ny * push;
+            b.x += nx * push; b.y += ny * push;
+            if (a.aiTimer !== undefined) a.aiTimer = 0;
+            if (b.aiTimer !== undefined) b.aiTimer = 0;
+          }
+        }
+      }
+      enemies = enemies.filter(e => e.alive);
+    }
+
+    // ===== 胜负判定 =====
+    if (this.mode !== 'online') {
+      if (!baseAlive) {
+        this.gameOver(false);
+      } else {
+        const anyAlive = players.some(p => {
+          if (!p) return false;
+          const lives = (p.playerIndex === 0 ? this.lives : this.lives2);
+          return p.alive || lives > 0;
+        });
+        if (!anyAlive) {
+          this.gameOver(false);
+        } else if (enemySpawnQueue === 0 && enemies.length === 0) {
+          if (this.level >= 5) this.gameOver(true);
+          else this.nextLevel();
+        }
+      }
+    }
+
+    // 暂停
+    if (Input.justPressedAny('Escape','KeyP')) this.togglePause();
+  },
+
+  togglePause() {
+    if (this.state === 'playing') {
+      this.state = 'paused';
+      document.getElementById('pauseMenu').classList.remove('hidden');
+    } else if (this.state === 'paused') {
+      this.state = 'playing';
+      document.getElementById('pauseMenu').classList.add('hidden');
+    }
+  },
+};
+
+// ============ Net 模块 ============
+const Net = {
+  baseUrl: '',
+  _pending: false,
+
+  async _get(path) {
+    try {
+      const res = await fetch(this.baseUrl + path, { method: 'GET' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch (e) {
+      if (!this._offlineWarned) {
+        this._offlineWarned = true;
+        showToast('⚠ 请先运行 tank_server.py 启动联机服务');
+        setTimeout(() => this._offlineWarned = false, 3000);
+      }
+      return { ok: false, msg: e.message };
+    }
+  },
+
+  async _post(path, data) {
+    try {
+      const res = await fetch(this.baseUrl + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch (e) {
+      if (!this._offlineWarned) {
+        this._offlineWarned = true;
+        showToast('⚠ 请先运行 tank_server.py 启动联机服务');
+        setTimeout(() => this._offlineWarned = false, 3000);
+      }
+      return { ok: false, msg: e.message };
+    }
+  },
+
+  async createRoom(name) {
+    const r = await this._get(`/api/create?name=${encodeURIComponent(name||'主机')}`);
+    if (r && r.ok) {
+      Game.roomId = r.room_id;
+      Game.onlineRole = 'host';
+      Game.playerNum = 1;
+    }
+    return r;
+  },
+
+  async joinRoom(roomId, name) {
+    const r = await this._get(`/api/join?room_id=${encodeURIComponent(roomId||'')}&name=${encodeURIComponent(name||'客人')}`);
+    if (r && r.ok) {
+      Game.roomId = roomId;
+      Game.onlineRole = 'guest';
+      Game.playerNum = 2;
+    }
+    return r;
+  },
+
+  async getStatus() {
+    if (!Game.roomId) return { ok: false };
+    return await this._get(`/api/status?room_id=${Game.roomId}`);
+  },
+
+  async setReady(ready) {
+    if (!Game.roomId) return { ok: false };
+    const v = ready ? '1' : '0';
+    return await this._get(`/api/ready?room_id=${Game.roomId}&p=${Game.playerNum}&v=${v}`);
+  },
+
+  async startGame() {
+    if (!Game.roomId) return { ok: false };
+    return await this._post('/api/start', { room_id: Game.roomId, map: null });
+  },
+
+  async pushState(x, y, dir, alive, events) {
+    if (!Game.roomId || this._pending) return;
+    this._pending = true;
+    try {
+      const r = await this._post('/api/state', {
+        room_id: Game.roomId,
+        p: Game.playerNum,
+        x, y, dir, alive,
+        events: events || [],
+        since: Game._lastEventIdx,
+      });
+      if (r && r.ok) {
+        // 对手状态
+        if (r.other && onlineOppTarget) {
+          if (r.other.x != null) onlineOppTarget.x = r.other.x;
+          if (r.other.y != null) onlineOppTarget.y = r.other.y;
+          onlineOppTarget.dir = r.other.dir ?? 0;
+          onlineOppTarget.alive = r.other.alive !== false;
+        }
+        // 新事件
+        if (r.events && r.events.length) {
+          for (const ev of r.events) {
+            if (ev.type === 'fire' && ev.p !== Game.playerNum) {
+              // 对手开火：在对手位置生成子弹
+              const oppIdx = 2 - Game.playerNum;
+              const fakeOwner = {
+                type: 'online_other',
+                bulletSpeed: 5,
+                bulletPower: 1,
+                playerIndex: oppIdx - 1,
+              };
+              const ex = ev.x != null ? ev.x : (onlineOppTarget ? onlineOppTarget.x : 0);
+              const ey = ev.y != null ? ev.y : (onlineOppTarget ? onlineOppTarget.y : 0);
+              const edir = ev.dir != null ? ev.dir : (onlineOppTarget ? onlineOppTarget.dir : 0);
+              const d = DIRS[edir];
+              const b = new Bullet(ex + d.x*20, ey + d.y*20, edir, fakeOwner);
+              bullets.push(b);
+              Audio.shoot();
+            }
+          }
+          if (typeof r.event_count === 'number') {
+            Game._lastEventIdx = r.event_count;
+          } else {
+            Game._lastEventIdx += r.events.length;
+          }
+        }
+        // 游戏状态
+        if (r.status === 'playing' && Game.state !== 'playing') {
+          // 客人收到开始信号
+          if (Game.onlineRole === 'guest') {
+            Game.start('online');
+          }
+        }
+      }
+    } finally {
+      this._pending = false;
+    }
+  },
+
+  leaveRoom() {
+    Game.roomId = null;
+    Game.onlineRole = null;
+    Game.playerNum = 1;
+    Game._lastEventIdx = 0;
+  },
+};
+
+// ============ 房间大厅轮询 ============
+let lobbyPollHandle = null;
+function startLobbyPoll() {
+  stopLobbyPoll();
+  lobbyPollHandle = setInterval(async () => {
+    if (Game.state === 'playing') { stopLobbyPoll(); return; }
+    const r = await Net.getStatus();
+    if (!r || !r.ok) return;
+    updateLobbyUI(r);
+    // 客人：如果状态变 playing
+    if (Game.onlineRole === 'guest' && r.status === 'playing' && Game.state !== 'playing') {
+      Game.start('online');
+    }
+  }, 600);
+}
+function stopLobbyPoll() {
+  if (lobbyPollHandle) { clearInterval(lobbyPollHandle); lobbyPollHandle = null; }
+}
+
+function updateLobbyUI(room) {
+  document.getElementById('lobbyRoomId').textContent = room.room_id || '----';
+  const p1 = room.player1;
+  const p2 = room.player2;
+  document.getElementById('p1Name').textContent = p1 ? p1.name : '主机';
+  document.getElementById('p1Ready').textContent = p1 && p1.ready ? '已准备' : '未准备';
+  document.getElementById('p1Ready').className = 'ready-badge ' + (p1 && p1.ready ? 'ready' : 'notready');
+
+  if (p2) {
+    document.getElementById('cardP2').classList.remove('empty');
+    document.getElementById('p2Name').textContent = p2.name;
+    document.getElementById('p2Tag').style.display = '';
+    document.getElementById('p2Ready').textContent = p2.ready ? '已准备' : '未准备';
+    document.getElementById('p2Ready').className = 'ready-badge ' + (p2.ready ? 'ready' : 'notready');
+  } else {
+    document.getElementById('cardP2').classList.add('empty');
+    document.getElementById('p2Name').textContent = '等待客人...';
+    document.getElementById('p2Tag').style.display = 'none';
+    document.getElementById('p2Ready').textContent = '未加入';
+    document.getElementById('p2Ready').className = 'ready-badge notready';
+  }
+
+  const bothReady = p1 && p1.ready && p2 && p2.ready;
+  const btnStart = document.getElementById('btnStartOnline');
+  btnStart.disabled = !(Game.onlineRole === 'host' && bothReady);
+}
+
+// ============ UI 辅助 ============
+function hideAllOverlays() {
+  ['mainMenu','onlineMenu','lobbyMenu','pauseMenu','gameOverScreen'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+}
+function showOverlay(id) {
+  hideAllOverlays();
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ============ Toast ============
+let toastTimer = 0;
+function showToast(msg) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = 'position:absolute;top:60px;left:50%;transform:translateX(-50%);padding:8px 24px;background:rgba(0,0,0,0.75);border:1px solid #ffc800;border-radius:4px;color:#ffc800;font-size:14px;letter-spacing:2px;opacity:0;transition:opacity 0.3s;z-index:20;pointer-events:none;white-space:nowrap;max-width:90%;';
+    document.getElementById('gameContainer').appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.opacity = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.style.opacity = '0', 2200);
+}
+
+// ============ HUD ============
+function updateHUD() {
+  document.getElementById('lvVal').textContent = Game.level;
+  document.getElementById('scoreVal').textContent = Game.score;
+  document.getElementById('lifeVal').textContent = Game.mode === 'online' ? Game.pkHp[Game.playerNum-1] : Game.lives;
+  if (Game.mode !== 'single') {
+    const lv2 = document.getElementById('lifeVal2');
+    if (Game.mode === 'online') {
+      lv2.textContent = Game.pkHp[2-Game.playerNum];
+      lv2.className = 'hud-val ' + (Game.onlineRole === 'host' ? 'blue' : '');
+    } else {
+      lv2.textContent = Game.lives2;
+      lv2.className = 'hud-val blue';
+    }
+  }
+  const evEl = document.getElementById('enemyVal');
+  if (evEl) evEl.textContent = enemySpawnQueue + enemies.filter(e=>e.alive).length;
+}
+
+// ============ 渲染 ============
+function render() {
+  let sx = 0, sy = 0;
+  if (Game.shake > 0.1) {
+    sx = rand(-Game.shake, Game.shake);
+    sy = rand(-Game.shake, Game.shake);
+  }
+
+  ctx.save();
+  ctx.translate(sx, sy);
+
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(-20, -20, W+40, H+40);
+
+  ctx.save();
+  ctx.font = 'bold 90px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(255,200,0,0.03)';
+  ctx.fillText('浩源', W/2, H/2 - 40);
+  ctx.font = 'bold 40px sans-serif';
+  ctx.fillStyle = 'rgba(125,211,252,0.04)';
+  ctx.fillText('浪尖儿大学生社区', W/2, H/2 + 30);
+  ctx.font = 'bold 120px sans-serif';
+  ctx.fillStyle = 'rgba(255,200,0,0.025)';
+  ctx.fillText('NNY', W/2, H/2 + 100);
+  ctx.restore();
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const tile = mapData[r][c];
+      const x = c * TS, y = r * TS;
+      if (tile === T.GRASS) {
+        ctx.fillStyle = C.grass;
+        ctx.fillRect(x, y, TS, TS);
+        ctx.fillStyle = '#338833';
+        for (let i = 0; i < 4; i++) {
+          ctx.fillRect(x + rand(2,TS-6), y + rand(2,TS-6), 4, 4);
+        }
+      } else if (tile === T.WATER) {
+        ctx.fillStyle = C.water;
+        ctx.fillRect(x, y, TS, TS);
+        ctx.fillStyle = 'rgba(100,150,255,0.3)';
+        const wave = Math.sin(performance.now() / 300 + r + c) * 3;
+        ctx.fillRect(x + 4, y + TS/2 + wave, TS - 8, 2);
+      }
+    }
+  }
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const tile = mapData[r][c];
+      const x = c * TS, y = r * TS;
+      if (tile === T.BRICK) drawBrick(x, y);
+      else if (tile === T.STEEL) drawSteel(x, y);
+      else if (tile === T.BASE) drawBase(x, y, baseAlive);
+    }
+  }
+
+  for (const e of enemies) e.draw();
+  for (const p of players) if (p) p.draw();
+  if (onlineOpponent) onlineOpponent.draw();
+
+  for (const b of bullets) b.draw();
+  renderParticles();
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (mapData[r][c] === T.GRASS) {
+        const x = c * TS, y = r * TS;
+        ctx.fillStyle = 'rgba(34,102,34,0.5)';
+        ctx.fillRect(x, y, TS, TS);
+        ctx.fillStyle = '#44aa44';
+        for (let i = 0; i < 3; i++) {
+          ctx.fillRect(x + rand(4,TS-8), y + rand(4,TS-8), 6, 3);
+        }
+      }
+    }
+  }
+
+  ctx.save();
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,200,0,0.15)';
+  ctx.fillText('N N Y', W/2, 16);
+  ctx.restore();
+
+  if (Game.flash > 0.01) {
+    ctx.fillStyle = `rgba(255,255,255,${Game.flash})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  ctx.restore();
+}
+
+function drawBrick(x, y) {
+  ctx.fillStyle = C.brick;
+  ctx.fillRect(x, y, TS, TS);
+  ctx.fillStyle = C.brickDark;
+  const bw = TS / 4;
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      if ((r + c) % 2 === 0) {
+        ctx.fillRect(x + c * bw + 1, y + r * bw + 1, bw - 2, bw - 2);
+      }
+    }
+  }
+  ctx.strokeStyle = C.brickDark;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, TS - 1, TS - 1);
+}
+function drawSteel(x, y) {
+  ctx.fillStyle = C.steel;
+  ctx.fillRect(x, y, TS, TS);
+  ctx.fillStyle = C.steelDark;
+  ctx.fillRect(x + 4, y + 4, TS - 8, TS - 8);
+  ctx.fillStyle = '#dddddd';
+  ctx.fillRect(x + 2, y + 2, TS - 4, 3);
+  ctx.fillRect(x + 2, y + 2, 3, TS - 4);
+  ctx.strokeStyle = C.steelDark;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, TS - 1, TS - 1);
+}
+function drawBase(x, y, alive) {
+  const cx = x + TS/2, cy = y + TS/2;
+  if (alive) {
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillRect(x + 4, y + 4, TS - 8, TS - 8);
+    ctx.fillStyle = '#ff6600';
+    ctx.beginPath();
+    ctx.moveTo(cx, y + 6);
+    ctx.lineTo(x + TS - 6, y + TS - 6);
+    ctx.lineTo(cx, y + TS - 10);
+    ctx.lineTo(x + 6, y + TS - 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(cx - 3, cy - 3, 6, 6);
+  } else {
+    ctx.fillStyle = C.baseDead;
+    ctx.fillRect(x + 4, y + 4, TS - 8, TS - 8);
+    ctx.strokeStyle = '#ff4400';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + 8, y + 8); ctx.lineTo(x + TS - 8, y + TS - 8);
+    ctx.moveTo(x + TS - 8, y + 8); ctx.lineTo(x + 8, y + TS - 8);
+    ctx.stroke();
+  }
+}
+
+// ============ 主循环 ============
+let lastTime = 0;
+function loop(now) {
+  if (!lastTime) lastTime = now;
+  const dt = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+
+  Game.update(dt);
+  updateParticles(dt);
+  Input.clearPressed();
+  render();
+
+  if (Game.state === 'playing' || Game.state === 'paused') updateHUD();
+  if (Game.state === 'paused' && Input.justPressedAny('Escape','KeyP')) Game.togglePause();
+
+  requestAnimationFrame(loop);
+}
+
+// ============ 初始化 & 绑定 ============
+Input.init();
+Audio.init();
+
+// 主菜单按钮
+document.getElementById('btnStart').onclick = () => Game.start('single');
+document.getElementById('btnLocal2P').onclick = () => Game.start('local2p');
+document.getElementById('btnOnline').onclick = () => {
+  showOverlay('onlineMenu');
+  // 尝试获取本地IP提示（通过 fetch /api/status 不行，只能显示默认提示）
+};
+
+// 联机菜单 - 模式切换
+document.getElementById('tabCreate').onclick = () => {
+  document.getElementById('tabCreate').classList.add('active');
+  document.getElementById('tabJoin').classList.remove('active');
+  document.getElementById('createPanel').style.display = '';
+  document.getElementById('joinPanel').style.display = 'none';
+};
+document.getElementById('tabJoin').onclick = () => {
+  document.getElementById('tabJoin').classList.add('active');
+  document.getElementById('tabCreate').classList.remove('active');
+  document.getElementById('joinPanel').style.display = '';
+  document.getElementById('createPanel').style.display = 'none';
+};
+document.getElementById('btnBackFromOnline').onclick = () => showOverlay('mainMenu');
+
+// 创建房间
+document.getElementById('btnCreateRoom').onclick = async () => {
+  const name = document.getElementById('hostName').value.trim() || '主机';
+  showToast('创建房间中...');
+  const r = await Net.createRoom(name);
+  if (r && r.ok) {
+    showToast(`✅ 房间创建成功！房间号：${r.room_id}`);
+    document.getElementById('lobbyTitle').textContent = '★ 房间大厅（主机） ★';
+    showOverlay('lobbyMenu');
+    updateLobbyUI({ room_id: r.room_id, player1: { name, ready: false }, player2: null });
+    startLobbyPoll();
+  } else {
+    showToast('❌ 创建失败: ' + (r && r.msg ? r.msg : '未知错误'));
+  }
+};
+
+// 加入房间
+document.getElementById('btnJoinRoom').onclick = async () => {
+  const rid = document.getElementById('joinRoomId').value.trim();
+  const name = document.getElementById('guestName').value.trim() || '客人';
+  if (!rid) { showToast('请输入房间号'); return; }
+  showToast('加入房间中...');
+  const r = await Net.joinRoom(rid, name);
+  if (r && r.ok) {
+    showToast('✅ 加入成功！');
+    document.getElementById('lobbyTitle').textContent = '★ 房间大厅（客人） ★';
+    showOverlay('lobbyMenu');
+    const st = await Net.getStatus();
+    if (st && st.ok) updateLobbyUI(st);
+    else updateLobbyUI({ room_id: rid, player1: { name: '主机', ready: false }, player2: { name, ready: false } });
+    startLobbyPoll();
+  } else {
+    showToast('❌ 加入失败: ' + (r && r.msg ? r.msg : '房间不存在'));
+  }
+};
+
+// 大厅 - 准备按钮
+let _localReady = false;
+document.getElementById('btnReady').onclick = async () => {
+  _localReady = !_localReady;
+  const r = await Net.setReady(_localReady);
+  if (r && r.ok) {
+    showToast(_localReady ? '✅ 已准备' : '取消准备');
+    document.getElementById('btnReady').textContent = _localReady ? '取消准备' : '准备';
+  } else {
+    _localReady = !_localReady;
+    showToast('操作失败');
+  }
+};
+
+// 大厅 - 开始游戏（主机）
+document.getElementById('btnStartOnline').onclick = async () => {
+  showToast('正在开始游戏...');
+  const r = await Net.startGame();
+  if (r && r.ok) {
+    stopLobbyPoll();
+    Game.start('online');
+  } else {
+    showToast('❌ 开始失败（双方需都准备）');
+  }
+};
+
+// 大厅 - 离开
+document.getElementById('btnLeaveLobby').onclick = () => {
+  stopLobbyPoll();
+  Net.leaveRoom();
+  _localReady = false;
+  document.getElementById('btnReady').textContent = '准备';
+  showOverlay('mainMenu');
+};
+
+// 暂停
+document.getElementById('btnResume').onclick = () => Game.togglePause();
+document.getElementById('btnQuit').onclick = () => {
+  stopLobbyPoll();
+  Net.leaveRoom();
+  Game.state = 'menu';
+  showOverlay('mainMenu');
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('hudLeft').classList.add('hidden');
+};
+
+// 结算
+document.getElementById('btnRetry').onclick = () => {
+  if (Game.mode === 'online') {
+    // 联机PK 结束后返回大厅/主菜单
+    showToast('联机模式请返回主菜单重新开房间');
+    document.getElementById('btnMenu').click();
+  } else {
+    Game.start(Game.mode);
+  }
+};
+document.getElementById('btnMenu').onclick = () => {
+  stopLobbyPoll();
+  Net.leaveRoom();
+  _localReady = false;
+  document.getElementById('btnReady').textContent = '准备';
+  showOverlay('mainMenu');
+  Game.state = 'menu';
+};
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
