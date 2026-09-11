@@ -1,0 +1,8 @@
+node_modules/
+data/
+__pycache__/
+*.log
+.env
+
+cloudflared.exe
+*.log

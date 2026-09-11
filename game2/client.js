@@ -1,7 +1,7 @@
 /* NNY出品 · 浩源 · 浪尖儿大学生社区 / 浪尖儿社区 */
 (() => {
   'use strict';
-  const E=TankEngine,P=TankProgress,$=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const E=TankEngine,P=TankProgress,$=id=>document.getElementById(id),API_BASE=String(globalThis.NNY_API_BASE||'').replace(/\/$/,''),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const store={get(k,fallback){try{return JSON.parse(localStorage.getItem('nny.'+k))??fallback;}catch{return fallback;}},set(k,v){try{localStorage.setItem('nny.'+k,JSON.stringify(v));}catch{}}};
   let selected=store.get('tank','assault');if(!E.TYPES[selected])selected='assault';
   let mapIndex=0,token=store.get('token',''),profile=null,onlineAvailable=false,room=null,state=null,online=false,paused=false,inviteUrls=[];
@@ -31,7 +31,7 @@
   async function api(path,data={},method='POST'){
     const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),5000);
     try{
-      const res=await fetch('/api/'+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(method==='POST'?{body:JSON.stringify(data)}:{}),signal:controller.signal});
+      const res=await fetch(API_BASE+'/api/'+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(method==='POST'?{body:JSON.stringify(data)}:{}),signal:controller.signal});
       const r=await res.json();if(!res.ok||!r.ok)throw new Error(r.message||'操作失败');return r;
     }catch(e){if(e.name==='AbortError')throw new Error('连接超时，正在等待服务器');if(e instanceof TypeError||e instanceof SyntaxError)throw new Error('联机服务未连接，请运行 node server.js');throw e;}finally{clearTimeout(timeout);}
   }
@@ -341,3 +341,5 @@
     else{try{const r=await api('room/status');receiveRoom(r.room);}catch{}offerTutorial();}
   }).catch(()=>{$('connection').classList.add('offline');$('connection').innerHTML='<i></i>单人模式可用';offerTutorial();});
 })();
+
+

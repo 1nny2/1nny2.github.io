@@ -6,6 +6,7 @@ const ROOT=__dirname;
 function createServer(options={}) {
   const rooms=new Map(),profiles=new Map(),rates=new Map();
   const dataFile=options.dataFile===false?null:(options.dataFile||path.join(ROOT,'data','profiles.json'));
+  const corsOrigins=String(options.corsOrigin||process.env.CORS_ORIGIN||'').split(',').map(v=>v.trim()).filter(Boolean);
   let queued=null,dirty=false;
   if(dataFile&&fs.existsSync(dataFile))for(const p of JSON.parse(fs.readFileSync(dataFile,'utf8'))){p.room=null;profiles.set(p.token,p);}
   const nameOf=v=>String(v||'新晋车长').replace(/[<>\x00-\x1f]/g,'').trim().slice(0,12)||'新晋车长';
@@ -48,7 +49,7 @@ function createServer(options={}) {
   function view(r,p){const m=member(r,p);return {id:r.id,revision:r.revision=(r.revision||0)+1,inputSeq:m.seq,skillSeq:m.skillSeq,fireSeq:m.fireSeq,status:r.status,mapIndex:r.mapIndex,ranked:r.ranked,ratedStarted:!!r.ratedStarted,waitSeconds:Math.floor((Date.now()-r.created)/1000),matchId:r.matchId,you:r.members.findIndex(m=>m.token===p.token),members:r.members.map(m=>({name:m.name,type:m.type,ready:m.ready,loaded:m.loaded,rematch:m.rematch,departed:!!m.departed})),state:r.state,rewards:r.rewards||[]};}
   function reply(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
   async function body(req){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>8192)error('请求过大',413);}try{return raw?JSON.parse(raw):{};}catch{error('请求格式错误');}}
-  const staticFiles={'/':'index.html','/index.html':'index.html','/tank.html':'index.html','/style.css':'style.css','/client.js':'client.js','/engine.js':'engine.js','/progress.js':'progress.js'};
+  const staticFiles={'/':'index.html','/index.html':'index.html','/tank.html':'index.html','/style.css':'style.css','/client.js':'client.js','/engine.js':'engine.js','/progress.js':'progress.js','/api-config.js':'api-config.js'};
   function inviteUrls(){
     if(process.env.PUBLIC_URL){try{const u=new URL(process.env.PUBLIC_URL);if(['https:','http:'].includes(u.protocol))return [u.origin];}catch{}}
     const port=server.address()?.port||8000;
@@ -65,7 +66,13 @@ function createServer(options={}) {
         res.writeHead(200,{'Content-Type':mime+'; charset=utf-8','Cache-Control':'no-cache'});if(req.method==='HEAD')res.end();else fs.createReadStream(path.join(ROOT,file)).pipe(res);return;
       }
       const ip=req.socket.remoteAddress,now=Date.now();let rate=rates.get(ip);if(!rate||now-rate.start>10000){rate={start:now,count:0};rates.set(ip,rate);}if(++rate.count>1200)error('操作太频繁，请稍后重试',429);
-      if(req.headers.origin){let origin;try{origin=new URL(req.headers.origin);}catch{error('请求来源无效',403);}if(origin.host!==req.headers.host)error('请从游戏页面发起操作',403);}
+      if(req.headers.origin){let origin;try{origin=new URL(req.headers.origin);}catch{error('请求来源无效',403);}const sameOrigin=origin.host===req.headers.host;const allowed=sameOrigin||corsOrigins.includes(origin.origin);if(!allowed)error('请从已授权的游戏页面发起操作',403);if(!sameOrigin){res.setHeader('Access-Control-Allow-Origin',origin.origin);res.setHeader('Vary','Origin');}}
+      if(req.method==='OPTIONS'){
+        res.setHeader('Access-Control-Allow-Methods','GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers','Content-Type, Authorization');
+        res.setHeader('Access-Control-Max-Age','600');
+        res.writeHead(204);res.end();return;
+      }
       if(route==='/api/health'&&req.method==='GET'){reply(res,200,{ok:true,version:'2.1.0',players:profiles.size,rooms:rooms.size,inviteUrls:inviteUrls()});return;}
       if(route==='/api/leaderboard'&&req.method==='GET'){reply(res,200,{ok:true,players:[...profiles.values()].filter(p=>p.matches>0).sort((a,b)=>b.rating-a.rating||b.wins-a.wins).slice(0,30).map(publicProfile)});return;}
       if(req.method!=='POST')error('请求方式不支持',405);
