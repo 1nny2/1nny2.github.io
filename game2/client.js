@@ -73,7 +73,7 @@
     if($('readyRoom'))$('readyRoom').onclick=()=>guarded($('readyRoom'),async()=>receiveRoom((await api('room/ready',{ready:!room.members[room.you].ready,type:selected})).room));
     if($('copyRoom'))$('copyRoom').onclick=()=>{
       const local=['localhost','127.0.0.1','[::1]'].includes(location.hostname);
-      const url=new URL(local&&inviteUrls.length?inviteUrls[0]:location.origin);url.searchParams.set('room',room.id);
+      const url=new URL(local&&inviteUrls.length?inviteUrls[0]:location.href);url.searchParams.set('room',room.id);
       navigator.clipboard?.writeText(url.href).then(()=>toast('邀请链接已复制')).catch(()=>showInvite(url.href));
       if(!navigator.clipboard)showInvite(url.href);
     };
