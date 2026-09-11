@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#151a18"><meta name="description" content="NNY出品 · 浩源 · 浪尖儿社区。经典四方向坦克竞技、好友对战与基地守卫。"><title>NNY 坦克大战 · 浩源 · 浪尖儿大学生社区</title><link rel="stylesheet" href="style.css"><script defer src="engine.js"></script><script defer src="progress.js"></script><script defer src="client.js"></script></head>
+<body>
+<header class="header"><a class="brand" href="./" aria-label="NNY 坦克大战首页"><span class="brand-mark">N<span>↗</span></span><span><b>NNY<span class="brand-dot">.</span> TANKS</b><small>浩源 · 浪尖儿大学生社区</small></span></a><nav aria-label="游戏导航"><button id="homeNav" class="nav active">作战大厅</button><button id="rankNav" class="nav">排行榜 <span>↗</span></button><button id="helpNav" class="nav">作战指南</button></nav><div class="header-end"><span id="connection" class="connection"><i></i>正在连接</span><button id="soundBtn" class="icon-btn" aria-label="关闭音效" title="音效开关">♪</button><button id="profileBtn" class="avatar" aria-label="我的车长档案">N</button></div></header>
+<main id="home" class="home">
+  <div class="section-label"><span><i></i> 作战中心 / OPERATIONS</span><span class="edition">VOL. 02 <span>·</span> 经典重装上阵</span></div>
+  <section class="hero">
+    <div class="hero-copy"><div class="eyebrow">小战场。大策略。</div><h1>坦克大战<span>每一发，<br>都算数。</span></h1><p class="intro">熟悉的四方向操作，全新的地形博弈。<br>选择你的战车，和朋友打一场漂亮的仗。</p>
+      <div class="hero-tags"><span>01 / 四向操控</span><span>02 / 公平竞技</span><span>03 / 双端开战</span></div>
+      <button id="quickBtn" class="primary large"><span>快速排位 <small>1V1 · 3 分钟 · 先击毁 3 次</small></span><b>↗</b></button>
+      <div class="secondary-actions"><button id="friendsBtn" class="secondary">好友对战 <span>＋</span></button><button id="singleBtn" class="secondary">单人守卫 <span>→</span></button></div>
+      <button id="coopBtn" class="text-btn">同机双人合作 <span>两个车长，一座基地 ↗</span></button>
+      <p class="tiny fair-note">排位开放全部坦克 · 成长不增加战斗数值</p>
+    </div>
+    <div class="preview"><div class="preview-top"><span><i></i> 战术沙盘</span><span id="previewMapName">交错前线 / 01</span></div><div class="preview-board"><canvas id="previewCanvas" width="624" height="624" aria-label="当前竞技地图预览"></canvas><span class="board-label">NNY / FIELD OPERATIONS</span><div class="preview-caption"><span>准备好改变战局？</span><b>以走位，定胜负。</b></div></div><div class="preview-bottom"><span>3 张战场 <i>/</i> 3 种打法</span><span>SELECT. DEPLOY. WIN. <b>↗</b></span></div></div>
+  </section>
+  <section class="hangar" aria-labelledby="hangarTitle"><div class="section-heading"><div><span class="eyebrow">YOUR LOADOUT</span><h2 id="hangarTitle">选择你的战车<span> / 01—03</span></h2></div><p id="growthHint">熟练度解锁收藏 · 所有坦克均可试玩</p></div>
+    <div id="tankCards" class="tank-cards"></div>
+    <div class="map-line"><label for="mapSelect">出击地图</label><select id="mapSelect"><option value="0">01 · 交错前线</option><option value="1">02 · 钢铁回廊</option><option value="2">03 · 河岸争夺</option></select><span>好友房由创建者选图 · 再战自动轮换</span></div>
+  </section>
+  <footer><span><b>NNY出品</b> · 浩源 · 浪尖儿社区</span><span>把胜负，交给你的操作。 <span class="footer-square">↗</span></span></footer>
+</main>
+<section id="battle" class="battle" hidden aria-label="坦克战场">
+  <div class="battle-top"><button id="exitBattle" class="text-btn">← 返回大厅</button><span id="battleMode">好友对战</span><div><button id="battleSound" class="icon-btn" aria-label="关闭战斗音效">♪</button><button id="pauseBtn" class="icon-btn" aria-label="暂停游戏">Ⅱ</button><button id="fullscreenBtn" class="icon-btn" aria-label="全屏游戏">⛶</button></div></div>
+  <div class="scoreboard"><div class="player-score"><span class="team-dot amber"></span><div><b id="p1Name">P1</b><small id="p1Hp">生命 3 / 3</small></div><strong id="p1Kills">0</strong></div><div class="clock"><b id="timer">03:00</b><small id="ruleLabel">先击毁 3 次</small></div><div class="player-score reverse"><span class="team-dot teal"></span><div><b id="p2Name">P2</b><small id="p2Hp">生命 3 / 3</small></div><strong id="p2Kills">0</strong></div></div>
+  <div id="queueStrip" class="battle-strip" hidden><span id="queueText"></span><button id="cancelQueue" class="text-btn">取消匹配</button></div>
+  <div id="tutorialPanel" class="battle-strip" hidden><span id="tutorialText" role="status"></span><button id="skipTutorial" class="text-btn">跳过教学</button></div>
+  <div class="arena-layout"><div class="arena"><canvas id="gameCanvas" width="624" height="624" aria-label="坦克对战游戏画面" tabindex="0"></canvas><div id="arenaNotice" class="arena-notice" hidden></div><div id="killFeed" class="kill-feed" aria-live="polite"></div><div id="countdownOverlay" class="countdown-overlay" hidden role="status"><small id="countdownLabel"></small><b id="countdownNumber"></b><span>双方同步开局 · 正式战斗 3 分钟</span></div><div id="pauseOverlay" class="pause-overlay" hidden><span class="eyebrow">TAKE A BREATH</span><h2>战场已暂停</h2><button id="resumeBtn" class="primary">继续作战 →</button></div></div>
+    <div id="touchControls" class="touch-controls"><div id="dpad" class="dpad" role="group" aria-label="方向控制"><button data-dir="0" aria-label="向上">▲</button><button data-dir="3" aria-label="向左">◀</button><span></span><button data-dir="1" aria-label="向右">▶</button><button data-dir="2" aria-label="向下">▼</button></div><div class="touch-actions"><button id="touchSkill" class="skill-control" aria-label="施放技能"><span>技能</span><small id="touchCooldown">就绪</small></button><button id="touchFire" class="fire-control" aria-label="射击">射击<small>按住连射</small></button></div></div>
+  </div>
+  <div class="battle-bottom"><span id="controlHint"><kbd>WASD</kbd> 移动 <kbd>空格</kbd> 射击 <kbd>E</kbd> 技能</span><span id="skillInfo">推进冲刺 · 就绪</span><span id="latency">本地运行</span></div><div class="battle-brand">NNY出品 <span>·</span> 浩源 <span>·</span> 浪尖儿社区</div>
+</section>
+<dialog id="modal"><div class="modal-top"><span id="modalKicker" class="eyebrow">OPERATIONS</span><button id="closeModal" class="icon-btn" aria-label="关闭弹窗">×</button></div><div id="modalBody"></div></dialog>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+</body></html>
