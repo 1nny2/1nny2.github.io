@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">NEON STRIKE / 霓虹突袭</title>
+  <desc id="desc">一张展示霓虹空战、Boss 预警、金币经济与任务进度的项目封面</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0a1418"/><stop offset=".55" stop-color="#132b2b"/><stop offset="1" stop-color="#25192b"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#b5f587" stop-opacity=".35"/><stop offset="1" stop-color="#b5f587" stop-opacity="0"/></radialGradient>
+    <linearGradient id="ship" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e4f9d0"/><stop offset=".45" stop-color="#8bbf9b"/><stop offset="1" stop-color="#355b62"/></linearGradient>
+    <linearGradient id="danger" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#ff7b9f"/><stop offset="1" stop-color="#ffb36b"/></linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="smallglow"><feGaussianBlur stdDeviation="4"/></filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <circle cx="820" cy="290" r="360" fill="url(#glow)" filter="url(#blur)"/>
+  <g opacity=".22" stroke="#9de3bd" fill="none"><path d="M0 560H1200M0 505H1200M0 450H1200"/><path d="M100 675L540 320M350 675L650 320M850 675L700 320M1100 675L760 320"/></g>
+  <g fill="#d5f8c3"><circle cx="88" cy="105" r="2"/><circle cx="220" cy="67" r="1.5"/><circle cx="1042" cy="78" r="2"/><circle cx="1114" cy="235" r="1.5"/><circle cx="910" cy="488" r="2"/><circle cx="410" cy="220" r="1.4"/></g>
+  <g transform="translate(72 62)"><text fill="#b5f587" font-family="monospace" font-size="13" letter-spacing="4">PROJECT / 01 · PLAYABLE PRODUCT</text><text y="58" fill="#f0f7e9" font-family="Arial,sans-serif" font-weight="800" font-size="54" letter-spacing="8">NEON STRIKE</text><text y="91" fill="#9fb9ab" font-family="Arial,sans-serif" font-size="19" letter-spacing="7">霓 虹 突 袭</text><rect y="119" width="230" height="1" fill="#b5f587"/><text y="148" fill="#c3d7c6" font-family="monospace" font-size="12">BUILD / SURVIVE / EVOLVE</text></g>
+  <g transform="translate(884 52)"><rect width="230" height="126" rx="8" fill="#0e1919" fill-opacity=".78" stroke="#486553"/><text x="20" y="26" fill="#8aa995" font-family="monospace" font-size="10" letter-spacing="2">MISSION STATUS</text><text x="20" y="59" fill="#e6f5df" font-family="monospace" font-size="25">SECTOR 03</text><text x="20" y="83" fill="#ffba79" font-family="monospace" font-size="11">BOSS EVOLUTION</text><rect x="20" y="101" width="190" height="5" rx="3" fill="#27382c"/><rect x="20" y="101" width="126" height="5" rx="3" fill="#b5f587"/></g>
+  <g transform="translate(685 250)" opacity=".9"><ellipse cx="0" cy="0" rx="170" ry="52" fill="none" stroke="#b5f587" stroke-opacity=".35" stroke-dasharray="5 12"/><ellipse cx="0" cy="0" rx="122" ry="34" fill="none" stroke="#b5f587" stroke-opacity=".24" transform="rotate(-28)"/><circle cx="0" cy="0" r="7" fill="#b5f587" filter="url(#smallglow)"/><path d="M0 -124L39 -30L98 52L27 33L0 110L-27 33L-98 52L-39 -30Z" fill="url(#ship)" stroke="#e1ffd0" stroke-width="2"/><path d="M0 -76L17 -19L10 46H-10L-17 -19Z" fill="#173633" stroke="#a8e6c4"/><path d="M-28 36L-84 76L-42 6M28 36L84 76L42 6" fill="#47766b" stroke="#b5f587"/><path d="M-11 70L0 128L11 70" fill="#ffca7c"/><path d="M0 -120V-143M-67 61L-92 77M67 61L92 77" stroke="#fff4d2" stroke-width="3"/></g>
+  <g transform="translate(152 448)"><rect width="315" height="125" rx="9" fill="#0d1819" fill-opacity=".82" stroke="#435e54"/><text x="22" y="28" fill="#849d91" font-family="monospace" font-size="10" letter-spacing="2">FLEET PROGRESSION</text><text x="22" y="65" fill="#f0f7e9" font-family="Arial,sans-serif" font-weight="700" font-size="24">6 战机 · 金币解锁</text><text x="22" y="91" fill="#a8c3b0" font-family="Arial,sans-serif" font-size="13">每日挑战 / 周挑战 / 勋章</text><circle cx="268" cy="66" r="24" fill="#2b2517" stroke="#d2a95b"/><text x="268" y="73" text-anchor="middle" fill="#ffd36e" font-family="monospace" font-size="18">◈</text></g>
+  <g transform="translate(748 532)"><rect width="365" height="45" rx="5" fill="#18221c" stroke="#526f54"/><text x="20" y="29" fill="#c6e8ae" font-family="monospace" font-size="12">SOLO · CO-OP · VERSUS · ENDLESS</text><path d="M330 14l15 8-15 8" fill="none" stroke="#b5f587" stroke-width="2"/></g>
+  <g opacity=".6" fill="#ff759d"><circle cx="575" cy="185" r="5"/><circle cx="520" cy="290" r="4"/><circle cx="610" cy="372" r="6"/></g>
+  <g stroke="url(#danger)" stroke-width="3" opacity=".72"><path d="M1000 200L715 305"/><path d="M1060 226L737 322"/><path d="M950 242L680 340"/></g>
+</svg>
