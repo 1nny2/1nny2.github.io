@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>粒子星云核心 · 宇宙漫游</title>
+    <link rel="icon" href="data:,">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #input-video { display: none; }
+
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            color: rgba(255, 255, 255, 0.85);
+            pointer-events: none;
+            user-select: none;
+            max-width: 340px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            letter-spacing: 3px;
+            text-shadow: 0 0 12px rgba(120, 180, 255, 0.9);
+            font-weight: 300;
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .panel {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            background: rgba(5, 10, 25, 0.45);
+            padding: 12px 14px;
+            border-radius: 10px;
+            border-left: 2px solid rgba(120, 180, 255, 0.6);
+            backdrop-filter: blur(6px);
+            line-height: 1.7;
+        }
+
+        .panel b { color: #8fc7ff; }
+
+        .status {
+            margin-top: 8px;
+            font-weight: bold;
+            color: #00ffcc;
+            font-size: 0.85rem;
+        }
+
+        #theme-tag {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            background: rgba(120, 180, 255, 0.15);
+            border: 1px solid rgba(120, 180, 255, 0.4);
+        }
+
+        /* 启动遮罩 */
+        #start-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at center, rgba(10,20,50,0.4) 0%, rgba(0,0,0,0.92) 70%);
+            text-align: center;
+            cursor: pointer;
+            transition: opacity 0.8s;
+        }
+        #start-overlay h2 {
+            font-weight: 200;
+            letter-spacing: 6px;
+            font-size: 2rem;
+            margin: 0 0 10px;
+            text-shadow: 0 0 20px rgba(120,180,255,0.8);
+        }
+        #start-overlay p {
+            opacity: 0.7;
+            font-size: 0.9rem;
+            max-width: 480px;
+            line-height: 1.7;
+            margin: 6px 0 24px;
+        }
+        #start-btn {
+            pointer-events: auto;
+            padding: 14px 42px;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            color: #fff;
+            background: linear-gradient(135deg, rgba(80,140,255,0.25), rgba(160,80,255,0.25));
+            border: 1px solid rgba(140,190,255,0.6);
+            border-radius: 30px;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s;
+        }
+        #start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(120,180,255,0.6);
+            border-color: #aed6ff;
+        }
+        #loading-hint {
+            margin-top: 18px;
+            font-size: 0.78rem;
+            opacity: 0.55;
+        }
+
+        /* 摄像头预览 */
+        #webcam-preview {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            z-index: 10;
+            border: 1px solid rgba(120,180,255,0.35);
+            border-radius: 10px;
+            opacity: 0.75;
+            transform: scaleX(-1);
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+        }
+
+        /* 音频控制 */
+        #audio-ctrl {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(5,10,25,0.5);
+            padding: 8px 14px;
+            border-radius: 24px;
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(120,180,255,0.25);
+            font-size: 0.78rem;
+        }
+        #audio-ctrl button {
+            background: none;
+            border: 1px solid rgba(140,190,255,0.4);
+            color: #cfe4ff;
+            border-radius: 14px;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+        #audio-ctrl button:hover { background: rgba(120,180,255,0.15); }
+        #audio-ctrl input[type=range] { width: 90px; accent-color: #6fb6ff; }
+
+        /* 超新星闪光层 */
+        #flash {
+            position: absolute;
+            inset: 0;
+            z-index: 25;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+            mix-blend-mode: screen;
+        }
+
+        .hint-row { display: flex; align-items: center; gap: 6px; }
+
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        html, body { width: 100%; height: 100%; overscroll-behavior: none; }
+        body { height: 100dvh; }
+        button, summary, input { -webkit-tap-highlight-color: transparent; }
+        button { min-height: 44px; cursor: pointer; touch-action: manipulation; }
+        button:disabled { cursor: wait; opacity: .55; }
+        button:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid #a8ddff; outline-offset: 3px; }
+        #canvas-container { position: fixed; touch-action: none; outline-offset: -3px; }
+        #canvas-container canvas { display: block; width: 100%; height: 100%; }
+        #ui-layer { top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); }
+        .panel { pointer-events: auto; max-height: calc(100dvh - 230px); overflow-y: auto; }
+        .panel summary { cursor: pointer; min-height: 28px; font-weight: 600; color: #cfe4ff; }
+        .manual-hint { margin: 8px 0; color: #a6d2ff; }
+        #start-overlay { position: fixed; padding: 24px; overflow-y: auto; cursor: default; }
+        #start-overlay h2 { font-size: clamp(1.35rem, 5vw, 2rem); letter-spacing: clamp(1px, 1vw, 6px); }
+        #loading-hint { opacity: .85; }
+        #camera-btn, #action-bar button { background: rgba(10, 21, 43, .88); color: #cfe4ff; border: 1px solid rgba(140,190,255,.4); border-radius: 12px; padding: 8px 12px; font: inherit; font-size: .8rem; }
+        #camera-btn { position: fixed; z-index: 12; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); }
+        #webcam-preview { position: fixed; top: calc(max(16px, env(safe-area-inset-top)) + 56px); bottom: auto; right: max(16px, env(safe-area-inset-right)); }
+        #action-bar { position: fixed; z-index: 12; left: 50%; transform: translateX(-50%); bottom: max(16px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: min(360px, calc(100% - 24px)); }
+        #action-bar button:hover { background: rgba(65, 108, 178, .65); }
+        #audio-ctrl { position: fixed; left: max(16px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); padding: 4px 10px; gap: 6px; width: max-content; max-width: calc(100% - 24px); white-space: nowrap; }
+        #audio-ctrl input[type=range] { height: 44px; }
+        #vol-label { min-width: 30px; }
+        @media (max-width: 900px), (pointer: coarse) {
+            #ui-layer { max-width: min(255px, calc(100% - 130px)); top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); }
+            h1 { font-size: 1rem; letter-spacing: 2px; }
+            .subtitle { font-size: .6rem; margin: 4px 0; }
+            .panel { padding: 8px 10px; font-size: .72rem; max-height: calc(100dvh - 335px); }
+            .status { font-size: .72rem; line-height: 1.5; }
+            #theme-tag { font-size: .65rem; }
+            #webcam-preview { width: 104px; height: 78px; }
+            #audio-ctrl { left: 50%; transform: translateX(-50%); bottom: calc(max(12px, env(safe-area-inset-bottom)) + 108px); }
+            #action-bar { bottom: max(12px, env(safe-area-inset-bottom)); }
+            #start-overlay p { max-width: 340px; font-size: .85rem; }
+        }
+        @media (max-height: 500px) and (orientation: landscape) {
+            #ui-layer { max-width: 245px; }
+            .subtitle { display: none; }
+            .panel { max-height: calc(100dvh - 180px); }
+            #action-bar { left: auto; right: max(12px, env(safe-area-inset-right)); transform: none; width: 290px; }
+            #audio-ctrl { left: max(12px, env(safe-area-inset-left)); transform: none; bottom: max(12px, env(safe-area-inset-bottom)); }
+            #webcam-preview { width: 96px; height: 72px; }
+            #start-overlay { padding: 12px 24px; }
+            #start-overlay p { max-width: 560px; margin-bottom: 12px; }
+            #start-btn { padding: 8px 30px; }
+            #loading-hint { margin-top: 8px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #flash { display: none; }
+            #start-overlay, button { transition: none !important; }
+        }
+    </style>
+
+</head>
+<body>
+
+    <!-- 启动遮罩：需用户交互以激活音频 -->
+    <div id="start-overlay">
+        <h2>粒 子 星 云 核 心</h2>
+        <p>一场指尖上的宇宙漫游。拖动旋转，双指缩放，轻触按钮释放星际特效。进入即可游玩，也可随时开启摄像头手势。佩戴耳机，感受星际环境音乐。</p>
+        <button id="start-btn" disabled>正在准备…</button>
+        <div id="loading-hint" role="status">正在准备星图...</div>
+    </div>
+
+    <div id="ui-layer">
+        <h1>NEBULA CORE</h1>
+        <div class="subtitle">GESTURE-DRIVEN COSMOS</div>
+        <details class="panel" id="help-panel">
+            <summary>操作说明</summary>
+            <div class="manual-hint">拖动旋转 · 双指 / 滚轮缩放<br>下方按钮可释放全部特效</div>
+            <div><b>单手手势</b></div>
+            <div class="hint-row">👋 <b>张开</b>：靠近星球</div>
+            <div class="hint-row">✊ <b>握拳</b>：远离星球</div>
+            <div class="hint-row">✌️ <b>剪刀</b>：切换星云主题</div>
+            <div class="hint-row">☝️ <b>食指</b>：发射流星</div>
+            <div class="hint-row">🤏 <b>捏合</b>：能量火花</div>
+            <div class="hint-row">🤟 <b>三指</b>：星爆环</div>
+            <div style="margin-top:8px"><b>双手手势</b></div>
+            <div class="hint-row">🙌 <b>双手张开</b>：曲速穿越</div>
+            <div class="hint-row">👨‍👩‍👧 <b>双手握拳</b>：引力坍缩</div>
+            <div class="hint-row">🤏🤏 <b>双手捏合</b>：超新星爆发</div>
+            <div class="hint-row">↔️ <b>双手开合</b>：缩放宇宙</div>
+            <div class="hint-row">🔃 <b>手掌倾斜</b>：旋转视角</div>
+        </details>
+        <div id="gesture-status" class="status" role="status">拖动旋转 · 双指 / 滚轮缩放</div>
+        <div id="theme-tag">主题：琥珀星云</div>
+    </div>
+
+    <video id="input-video" muted playsinline autoplay aria-hidden="true"></video>
+    <canvas id="webcam-preview" hidden aria-label="摄像头手势预览"></canvas>
+    <button id="camera-btn" aria-pressed="false" hidden>开启手势</button>
+    <div id="canvas-container" aria-label="星云：拖动旋转，双指或滚轮缩放" tabindex="0"></div>
+    <div id="flash"></div>
+
+    <div id="audio-ctrl" hidden>
+        <button id="mute-btn">♪ 音乐开</button>
+        <input type="range" id="vol-slider" aria-label="音乐音量" min="0" max="100" value="55">
+        <span id="vol-label" style="opacity:0.7">音量</span>
+    </div>
+
+    <div id="action-bar" role="group" aria-label="星云互动" hidden>
+        <button data-action="theme">换主题</button>
+        <button data-action="comet">流星</button>
+        <button data-action="spark">火花</button>
+        <button data-action="ring">星爆环</button>
+        <button data-action="warp">曲速</button>
+        <button data-action="collapse">坍缩</button>
+        <button data-action="supernova">超新星</button>
+        <button data-action="reset">复位</button>
+    </div>
+
+    <script>
+        // 先显示页面；资源或 WebGL 失败时给出可见的重试入口。
+        const hint = document.getElementById('loading-hint');
+        const start = document.getElementById('start-btn');
+        const slowTimer = setTimeout(() => {
+            hint.textContent = '星图加载较慢，请稍候；若持续无响应可刷新重试。';
+        }, 15000);
+        import('./assets/app.js').then(() => clearTimeout(slowTimer)).catch(error => {
+            clearTimeout(slowTimer);
+            console.error(error);
+            hint.textContent = location.protocol === 'file:'
+                ? '请通过网站地址打开，或运行本地服务后访问 localhost:4173。'
+                : '星图启动失败，请检查网络或浏览器 WebGL 支持后重试。';
+            start.disabled = false;
+            start.textContent = '重新加载';
+            start.onclick = () => location.reload();
+        });
+    </script>
+</body>
+</html>

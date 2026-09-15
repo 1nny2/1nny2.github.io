@@ -1,0 +1,19 @@
+{
+  "name": "nebula-core",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/serve.mjs",
+    "test": "node tests/smoke.mjs",
+    "test:hands": "node tests/hands.mjs"
+  },
+  "dependencies": {
+    "@mediapipe/hands": "0.4.1675469240",
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.0",
+    "playwright": "1.55.0"
+  }
+}
