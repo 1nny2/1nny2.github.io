@@ -1,0 +1,43 @@
+[
+  {
+    "test": "Mouse starts without model or external network",
+    "ms": 0.5
+  },
+  {
+    "test": "Real MediaPipe loads and processes fake-camera frames in worker",
+    "modelMs": 383,
+    "backend": "worker"
+  },
+  {
+    "test": "Re-entry reuses initialized model",
+    "ms": 65
+  },
+  {
+    "test": "Permission denial shows actionable message and mouse remains available"
+  },
+  {
+    "test": "Model failure releases camera and allows immediate mouse fallback"
+  },
+  {
+    "test": "Cancel during permission request stops late camera stream without interrupting mouse mode"
+  },
+  {
+    "test": "Mobile emulation: camera startup, touch release, inline playback, low DPR",
+    "inline": true,
+    "muted": true,
+    "ratio": 1.2487179487179487,
+    "overlayWidth": 219,
+    "ready": true
+  },
+  {
+    "test": "No Worker + failed GPU: real CPU model detects in rate-limited compatibility mode"
+  },
+  {
+    "test": "80 ms slow inference does not block animation or accumulate frames",
+    "frames": 72,
+    "inferenceFrames": 8
+  },
+  {
+    "test": "Insecure mobile/LAN HTTP gives HTTPS guidance and keeps touch mode usable"
+  }
+]
