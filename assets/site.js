@@ -215,3 +215,33 @@ $$('dialog').forEach(dialog => dialog.addEventListener('click', event => {
 for (const init of [initPreferences, initNavigation, initQuickView, initCopy, initImageFallbacks, initLightbox, initPrinting, initIntro]) {
   try { init(); } catch (error) { console.warn('页面交互初始化失败：', init.name, error.message); }
 }
+
+// Archive galleries: flatten all cards into one horizontal, scrollable strip.
+(() => {
+  const initArchiveCarousels = () => {
+    ['portfolio', 'ai-cert'].forEach((sectionId) => {
+      const section = document.getElementById(sectionId);
+      if (!section || section.dataset.carouselReady) return;
+      const primary = section.querySelector(':scope > .gallery');
+      if (!primary) return;
+      const extra = section.querySelector(':scope > .gallery-expand');
+      const figures = [
+        ...primary.querySelectorAll(':scope > figure'),
+        ...(extra ? extra.querySelectorAll('.gallery > figure') : [])
+      ];
+      if (!figures.length) return;
+      primary.replaceChildren(...figures);
+      primary.classList.add('gallery-scroll');
+      primary.classList.remove('ai-sphere');
+      extra?.remove();
+      section.dataset.carouselReady = 'true';
+      const hint = document.createElement('p');
+      hint.className = 'gallery-scroll-hint';
+      hint.textContent = '← 左右滑动浏览 · 点击图片查看大图 →';
+      primary.insertAdjacentElement('afterend', hint);
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initArchiveCarousels, { once: true });
+  else initArchiveCarousels();
+})();
+
