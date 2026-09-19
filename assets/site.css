@@ -220,3 +220,19 @@ dialog{color:var(--text);background:var(--panel);border:1px solid var(--line);bo
 .projects-section .project-card-featured h3{font-size:23px}
 @media(max-width:1000px){.projects-section .project-card-featured{grid-column:auto}.projects-section .project-card-featured .project-cover{aspect-ratio:16/9}}
 @media(max-width:760px){.projects-section .project-card-featured .project-content{padding:21px}.projects-section .project-card-featured h3{font-size:22px}}
+
+/* Game4: two clear exploration routes, sized to match the game3 card. */
+.exploration-routes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:16px 0 12px}
+.exploration-route{padding:12px 13px;border:1px solid #6672a855;border-radius:9px;background:linear-gradient(145deg,#151a35cc,#0b1020cc);min-width:0}
+.exploration-route.route-gesture{border-color:#80f7d755;background:linear-gradient(145deg,#102b32cc,#0b1724cc)}
+.route-index{display:block;color:#a9add0;font:9px var(--mono);letter-spacing:.12em}
+.route-gesture .route-index{color:#80f7d7}
+.exploration-route h4{margin:7px 0 4px;color:#f1f2ff;font-size:13px;line-height:1.45}
+.exploration-route p{margin:0;color:#9fa9c3;font-size:11px;line-height:1.55}
+.route-actions{display:flex;justify-content:space-between;gap:7px;align-items:center;margin-top:8px;color:#8d98b7;font:9px var(--mono)}
+.route-actions b{color:#c7bdff;font-size:14px}
+.route-gesture .route-actions b{color:#80f7d7}
+.project-quick-facts{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;color:#8f99b8;font:10px var(--mono)}
+.project-quick-facts span{padding:5px 7px;border:1px solid #7076ad55;border-radius:5px;background:#0e1327aa}
+.project-quick-facts b{color:#c6bdff}
+@media(max-width:760px){.exploration-routes{grid-template-columns:1fr;gap:7px;margin-top:13px}.exploration-route{padding:11px 12px}.exploration-route p{font-size:10px}.project-quick-facts{margin-bottom:10px}}
