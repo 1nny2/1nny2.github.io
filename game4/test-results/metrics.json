@@ -1,0 +1,92 @@
+[
+  {
+    "label": "desktop",
+    "readyMs": 307,
+    "resources": [
+      {
+        "name": "/assets/app.js",
+        "bytes": 66605
+      },
+      {
+        "name": "/assets/chunk-OVWN4UNG.js",
+        "bytes": 484848
+      }
+    ],
+    "canvas": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  {
+    "label": "phone",
+    "readyMs": 115,
+    "resources": [
+      {
+        "name": "/assets/app.js",
+        "bytes": 66605
+      },
+      {
+        "name": "/assets/chunk-OVWN4UNG.js",
+        "bytes": 484848
+      }
+    ],
+    "canvas": {
+      "width": 487,
+      "height": 830
+    }
+  },
+  {
+    "label": "small-phone",
+    "readyMs": 116,
+    "resources": [
+      {
+        "name": "/assets/app.js",
+        "bytes": 66605
+      },
+      {
+        "name": "/assets/chunk-OVWN4UNG.js",
+        "bytes": 484848
+      }
+    ],
+    "canvas": {
+      "width": 400,
+      "height": 710
+    }
+  },
+  {
+    "label": "narrow-desktop",
+    "readyMs": 109,
+    "resources": [
+      {
+        "name": "/assets/app.js",
+        "bytes": 66605
+      },
+      {
+        "name": "/assets/chunk-OVWN4UNG.js",
+        "bytes": 484848
+      }
+    ],
+    "canvas": {
+      "width": 840,
+      "height": 720
+    }
+  },
+  {
+    "label": "tablet",
+    "readyMs": 113,
+    "resources": [
+      {
+        "name": "/assets/app.js",
+        "bytes": 66605
+      },
+      {
+        "name": "/assets/chunk-OVWN4UNG.js",
+        "bytes": 484848
+      }
+    ],
+    "canvas": {
+      "width": 960,
+      "height": 1280
+    }
+  }
+]
