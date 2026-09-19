@@ -204,3 +204,19 @@ dialog{color:var(--text);background:var(--panel);border:1px solid var(--line);bo
 [data-theme=light] .project-card-featured .project-details{background:#0c1021}
 @media(max-width:1000px){.project-overview{grid-template-columns:1fr}.project-card-featured{grid-template-columns:1fr}.project-card-featured .project-cover{grid-column:1;grid-row:1;aspect-ratio:16/9;min-height:0}.project-card-featured .project-content{grid-column:1;grid-row:2}.project-card-featured .project-details{grid-column:1;grid-row:3}}
 @media(max-width:760px){.project-overview{padding:16px}.project-overview-stats{grid-template-columns:repeat(2,1fr)}.project-overview-stats div:nth-child(3){border-left:0;border-top:1px solid var(--line)}.project-overview-stats div:nth-child(4){border-top:1px solid var(--line)}.project-card-featured .project-content{padding:23px 21px}.project-stat-row{grid-template-columns:repeat(2,1fr)}.project-facts{grid-template-columns:repeat(2,1fr)}.theme-list{grid-template-columns:repeat(2,1fr)}.theme-list span:last-child{grid-column:1/-1}.cover-readout{left:15px;right:15px;bottom:14px}.cover-readout strong{font-size:10px}.cover-chip{top:13px;right:13px;font-size:9px}.project-card-featured .project-details>summary{padding-left:21px;padding-right:21px}}
+
+/* Project showcase: keep the two interactive games on one aligned row. */
+.projects-section .project-grid{align-items:stretch}
+.projects-section .project-card{display:flex;flex-direction:column;min-width:0}
+.projects-section .project-card .project-content{display:flex;flex:1;flex-direction:column}
+.projects-section .project-card .project-content>.actions{margin-top:auto;padding-top:20px}
+.projects-section .project-card .project-details{margin-top:auto}
+.projects-section .project-card-featured{grid-column:auto;grid-template-columns:1fr;display:flex;align-self:stretch;border-color:#756cc955;background:linear-gradient(145deg,#0d1022f5,var(--panel) 72%);box-shadow:0 22px 70px #03071355}
+.projects-section .project-card-featured::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 18% 15%,#795eff22,transparent 34%),radial-gradient(circle at 92% 90%,#f08f5e18,transparent 32%);pointer-events:none}
+.projects-section .project-card-featured .project-cover{grid-column:auto;grid-row:auto;aspect-ratio:16/9;min-height:0}
+.projects-section .project-card-featured .project-content{grid-column:auto;grid-row:auto;display:flex;flex:1;flex-direction:column;justify-content:flex-start;min-width:0;padding:24px}
+.projects-section .project-card-featured .project-details{grid-column:auto;grid-row:auto}
+.projects-section .project-card-featured .project-content>.actions{margin-top:auto}
+.projects-section .project-card-featured h3{font-size:23px}
+@media(max-width:1000px){.projects-section .project-card-featured{grid-column:auto}.projects-section .project-card-featured .project-cover{aspect-ratio:16/9}}
+@media(max-width:760px){.projects-section .project-card-featured .project-content{padding:21px}.projects-section .project-card-featured h3{font-size:22px}}
