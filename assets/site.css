@@ -236,3 +236,24 @@ dialog{color:var(--text);background:var(--panel);border:1px solid var(--line);bo
 .project-quick-facts span{padding:5px 7px;border:1px solid #7076ad55;border-radius:5px;background:#0e1327aa}
 .project-quick-facts b{color:#c6bdff}
 @media(max-width:760px){.exploration-routes{grid-template-columns:1fr;gap:7px;margin-top:13px}.exploration-route{padding:11px 12px}.exploration-route p{font-size:10px}.project-quick-facts{margin-bottom:10px}}
+
+/* Dual-route project: concise overview aligned with Fruitwarp Ninja. */
+.game4-dual-cover{display:grid;grid-template-columns:1fr 1fr;flex-shrink:0}
+.game4-dual-cover figure{position:relative;min-width:0;margin:0;overflow:hidden;background:#040b12}
+.game4-dual-cover figure+figure{border-left:1px solid #758eaa55}
+.game4-dual-cover img{position:absolute;inset:0;object-position:55% 40%;height:100%;width:100%}
+.game4-dual-cover figcaption{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:18px 16px;background:linear-gradient(0deg,#050c18 0%,#050c18cc 23%,transparent 70%);color:#f0f8ff}
+.game4-dual-cover figcaption small{font:10px var(--mono);color:#90e9fa}
+.game4-dual-cover figure+figure small{color:#bcb2ff}
+.game4-dual-cover figcaption strong{font-size:22px;line-height:1.5;margin:3px 0}
+.game4-dual-cover figcaption span{font-size:11px;color:#c6d5e3}
+.game4-paths{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.game4-paths>div{border-left:2px solid var(--accent);padding-left:10px;min-width:0}
+.game4-paths>div+div{border-color:var(--violet)}
+.game4-paths b{display:block;font-size:12px;color:var(--text)}
+.game4-paths span{display:block;font-size:11px;color:var(--muted)}
+.projects-section .project-grid>.project-card>.project-cover{flex-shrink:0}
+.game4-archive>section{border-bottom:1px solid var(--line);padding-bottom:14px}
+.game4-archive>section h4{color:var(--accent)}
+.game4-archive>section+section h4{color:var(--violet)}
+@media(max-width:760px){.game4-dual-cover figcaption{padding:12px 10px}.game4-dual-cover figcaption strong{font-size:19px}.game4-dual-cover figcaption span{font-size:10px}.game4-paths{gap:7px}}
